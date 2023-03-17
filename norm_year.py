@@ -7,42 +7,8 @@ from normalization import *
 import matplotlib
 from scipy.signal import wiener
 from  matplotlib import ticker
-#Arguments date
-day1 = 1
-delta_days = 364 + 1
-day2 = day1 + delta_days
-year = '2015'
-totals = delta_days * 24 *3600
+from Arguments import *
 
-
-#Arguments windows
-window_duration_sec =360
-average = 20
-overlap = 0.5
-preproc_spectral_secs = window_duration_sec * average * overlap
-time = np.arange(0,totals,preproc_spectral_secs/2)
-
-#Directory of work
-ODIR = './output_wdur' + str(window_duration_sec) + 's' + '_av' + str(average)
-
-# Signal parameter
-s_rate = 20 #signal rate
-Fn = s_rate/2 #Nyquist
-lfreq = 1.0 #low freq idx
-hfreq = 10.0
-#smoothF = 0.05 #frequency for smoothing
-ismooth = [0.05]
-thres = 0.05 #threshold
-
-npts = (window_duration_sec * s_rate *2 ) - 1 #number of points
-T =  window_duration_sec *2
-DelF = 1/T
-DelT = (window_duration_sec/2) * (average/2)
-freq_tmp = np.fft.fftfreq(npts,d=1/s_rate)
-lf_idx = np.argwhere(freq_tmp[:int(npts/2)]>=lfreq)[0][0] #lower freq index
-hf_idx = np.argwhere(freq_tmp[:int(npts/2)]<=hfreq)[-1][0] #lower freq index
-# fr_vec = freq_tmp[lf_idx:int(np.ceil(npts/2))] # frequency vector
-fr_vec = freq_tmp[lf_idx:hf_idx] # frequency vector
 
 
 #READING THE DATA 
@@ -119,45 +85,45 @@ for smoothF in ismooth:
     ax.set_ylabel('Frequency, Hz')
     ax.set_yscale('symlog',linthresh=1e-1,subs=[2,3,4,5,6,7,8,9,10])
     ax.set_yticks(np.arange(11))
-    ax.set_ylim(lfreq,hfreq)
+    ax.set_ylim(lowfreq,hfreq)
     plt.colorbar(img, ax=ax)
     ax.yaxis.set_major_formatter(ticker.ScalarFormatter())
     plt.title('spectral width:' + year)
-    filename = 'Year/' + year + '_bp'+ str(lfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) + '_erup.png'
+    filename = 'Year/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) + '_erup.png'
     plt.savefig(filename,dpi=200)
-    filename = 'Year_Figures/' + year + '_bp'+ str(lfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) + '_erup.pdf'
+    filename = 'Year_Figures/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) + '_erup.pdf'
     plt.savefig(filename)
     
     
     plt.figure(figsize=(15,8))
-    plt.imshow(sw_0,origin='lower',extent=[day1-1,day2-1,lfreq,hfreq],aspect='auto',cmap='RdBu')
+    plt.imshow(sw_0,origin='lower',extent=[day1-1,day2-1,lowfreq,hfreq],aspect='auto',cmap='RdBu')
     plt.colorbar()
     plt.yscale('symlog',linthresh=1e-1,subs=[2,3,4,5,6,7,8,9])
-    plt.ylim(lfreq,hfreq)
+    plt.ylim(lowfreq,hfreq)
     plt.xlim(1,345)
     plt.ylabel('Frequency Hz')
     plt.xlabel('days')
     plt.title('smoothed spectral width: ' + str(smoothF) + 'Hz' )
-    filename = 'Year_Smooth/' + year + '_bp'+ str(lfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) + '_smooth_' + str(smoothF) + 'Hz_erup.png'
+    filename = 'Year_Smooth/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) + '_smooth_' + str(smoothF) + 'Hz_erup.png'
     plt.savefig(filename,dpi=200)
-    filename = 'Year_Figures/' + year + '_bp'+ str(lfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) + '_smooth_' + str(smoothF) + 'Hz_erup.pdf'
+    filename = 'Year_Figures/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) + '_smooth_' + str(smoothF) + 'Hz_erup.pdf'
     plt.savefig(filename)
     
     fig, ax = plt.subplots(1, figsize=(11, 6))
-    img = ax.imshow(sw_fin,origin='lower',extent=[day1-1,day2-1,lfreq,hfreq],aspect='auto',cmap='viridis')
+    img = ax.imshow(sw_fin,origin='lower',extent=[day1-1,day2-1,lowfreq,hfreq],aspect='auto',cmap='viridis')
     # img = ax.pcolorfast(times, fr_vec, sw_fin, rasterized=True, cmap="viridis")
     ax.set_xlabel('days')
     ax.set_ylabel('Frequency, Hz')
     ax.set_yscale('symlog',linthresh=1e-1,subs=[2,3,4,5,6,7,8,9,10])
     ax.set_yticks(np.arange(11))
-    ax.set_ylim(lfreq,hfreq)
+    ax.set_ylim(lowfreq,hfreq)
     plt.colorbar(img, ax=ax)
     ax.yaxis.set_major_formatter(ticker.ScalarFormatter())
     plt.title('Normalized spectral width, smooth:' + str(smoothF) + 'Hz')
-    filename = 'Year_SW_spec/' + year + '_bp'+ str(lfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average)  \
+    filename = 'Year_SW_spec/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average)  \
         + '_sm_' + str(smoothF) + 'Hz_norm' +'_thres_' + str(thres) + '.png'
     plt.savefig(filename,dpi=400)
-    filename = 'Year_Figures/' + year +'_bp'+ str(lfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) \
+    filename = 'Year_Figures/' + year +'_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) \
         + '_sm_' + str(smoothF) + 'Hz_norm' +'_thres_' + str(thres) + '.pdf'
     plt.savefig(filename)
     plt.close('all')
@@ -168,19 +134,19 @@ for smoothF in ismooth:
     sw_median = medfilt_days(sw_fin,int(mfiltnum))
     
     plt.figure(figsize=(15,8))
-    plt.imshow(sw_median,origin='lower',extent=[day1-1,day2-1,lfreq,hfreq],aspect='auto',cmap='viridis',vmin=0,vmax=1)
+    plt.imshow(sw_median,origin='lower',extent=[day1-1,day2-1,lowfreq,hfreq],aspect='auto',cmap='viridis',vmin=0,vmax=1)
     plt.colorbar()
     plt.yscale('symlog',linthresh=1e-1,subs=[2,3,4,5,6,7,8,9])
-    plt.ylim(lfreq,hfreq)
+    plt.ylim(lowfreq,hfreq)
     plt.xlim(1,345)
     plt.ylabel('Frequency Hz')
     plt.xlabel('days')
     plt.title('Normalized spectral width with median filter: ' + str(win_medfilt) + 'min')
-    filename = 'Year_Median_filt/' + year +'_bp'+ str(lfreq) + '_' + str(hfreq) + 'Hz_win' + \
+    filename = 'Year_Median_filt/' + year +'_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + \
          str(window_duration_sec) + 's_av' + str(average) \
         + '_sm_' + str(smoothF) + 'Hz_norm' +'_thres_' + str(thres) + 'medfilt_' + str(win_medfilt) + 'm.png'
     plt.savefig(filename,dpi=300)
-    filename = 'Year_Figures/' + year + '_bp'+ str(lfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) + '_sm_' + str(smoothF) + 'Hz_norm' +'_thres_' \
+    filename = 'Year_Figures/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) + '_sm_' + str(smoothF) + 'Hz_norm' +'_thres_' \
         + str(thres) + 'medfilt_' + str(win_medfilt) + 'm.pdf'
     plt.savefig(filename)
     plt.close('all')
@@ -193,18 +159,18 @@ for smoothF in ismooth:
         # sw_wiener = wiener(sw_fin)
         sw_wiener = wiener(sw_fin,(1,int(wiennum)))
         plt.figure(figsize=(15,8))
-        plt.imshow(sw_wiener,origin='lower',extent=[day1-1,day2-1,lfreq,hfreq],aspect='auto',cmap='viridis',vmin=0,vmax=1)
+        plt.imshow(sw_wiener,origin='lower',extent=[day1-1,day2-1,lowfreq,hfreq],aspect='auto',cmap='viridis',vmin=0,vmax=1)
         plt.colorbar()
         plt.yscale('symlog',linthresh=1e-1,subs=[2,3,4,5,6,7,8,9])
-        plt.ylim(lfreq,hfreq)
+        plt.ylim(lowfreq,hfreq)
         plt.xlim(1,345)
         plt.ylabel('Frequency Hz')
         plt.xlabel('days')
         plt.title('Normalized spectral width with wiener filter: ' + str(win_wien) + 'min')
-        filename = 'Year_Wiener/' + year + '_bp'+ str(lfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) \
+        filename = 'Year_Wiener/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) \
             + '_sm_' + str(smoothF) + 'Hz_norm' +'_thres_' + str(thres) + 'wienfilt_' + str(win_wien) + 'm.png'
         plt.savefig(filename,dpi=300)
-        filename = 'Year_Figures/' + year + '_bp'+ str(lfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) + '_sm_' + str(smoothF) + 'Hz_norm' +'_thres_' \
+        filename = 'Year_Figures/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) + '_sm_' + str(smoothF) + 'Hz_norm' +'_thres_' \
             + str(thres) + 'wienfilt_' + str(win_wien) + 'm.pdf'
         plt.savefig(filename)
         plt.close('all')
@@ -222,11 +188,11 @@ plt.ylim(day1-1,day2-1)
 plt.xlim(day1-1,day2-1)
 plt.ylabel('days')
 plt.xlabel('days')
-plt.title('Normalized spectral width with wiener filter: ' + str(win_wien) + 'min (' + str(lfreq) + '-' + str(hfreq) + ' Hz)')
-filename = 'Year_CorCoef/' + year +'_bp'+ str(lfreq) + '_' + str(hfreq) + 'Hz_CorrCoef_win' + str(window_duration_sec) + 's_av' + str(average) \
+plt.title('Normalized spectral width with wiener filter: ' + str(win_wien) + 'min (' + str(lowfreq) + '-' + str(hfreq) + ' Hz)')
+filename = 'Year_CorCoef/' + year +'_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_CorrCoef_win' + str(window_duration_sec) + 's_av' + str(average) \
     + '_sm_' + str(smoothF) + 'Hz_norm' +'_thres_' + str(thres) + 'wienfilt_' + str(win_wien) + 'min.png'
 plt.savefig(filename,dpi=300)
-filename = 'Year_Figures/' + year+'_bp'+ str(lfreq) + '_' + str(hfreq) + 'Hz_CorrCoef_win' + str(window_duration_sec) + 's_av' + str(average) + '_sm_' + str(smoothF) + 'Hz_norm' +'_thres_' \
+filename = 'Year_Figures/' + year+'_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_CorrCoef_win' + str(window_duration_sec) + 's_av' + str(average) + '_sm_' + str(smoothF) + 'Hz_norm' +'_thres_' \
     + str(thres) + 'wienfilt_' + str(win_wien) + 'min.pdf'
 plt.savefig(filename)
 plt.close('all')
@@ -238,7 +204,7 @@ sw_dict['wiener'] = sw_wiener
 sw_dict['median'] = sw_median
 sw_dict['norm'] = sw_fin
     
-sw_file = year + '_SW_bp' + str(lfreq) + '_' + str(hfreq) + '_win_' + str(window_duration_sec) + '_av_' + str(average) + '_sm_' + str(smoothF) + '_Hz_thres_' + str(thres) + '.npy'
+sw_file = year + '_SW_bp' + str(lowfreq) + '_' + str(hfreq) + '_win_' + str(window_duration_sec) + '_av_' + str(average) + '_sm_' + str(smoothF) + '_Hz_thres_' + str(thres) + '.npy'
 np.save(sw_file,sw_dict)
     
 if False:
