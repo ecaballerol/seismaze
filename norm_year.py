@@ -1,28 +1,21 @@
-import numpy as np
-import matplotlib.pyplot as plt
 # import covseisnet as csn
 import glob
-from scipy import signal
-from normalization import *
+
 import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib import ticker
+from scipy import signal
 from scipy.signal import wiener
-from  matplotlib import ticker
+
 from Arguments import *
+import normalization as swm
 
 
-
+sw_year = swm.swnorm(ODIR,kw_dict)
 #READING THE DATA 
-spectral_year = []
-for d in range(day1,day2):
-    print(d)
-    doy = f'{d:03}'
-    doy = str(doy)
-    SW = ODIR +'/SW_' + year + '_' +doy+ '_*'
-    SW_name  = glob.glob(SW)[0]
-    SWtmp = np.load(SW_name)
-    spectral_year.extend(SWtmp)
     
-spectral_year=np.array(spectral_year).T
+spectral_year= sw_year.readSW()
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #Windows to analyze

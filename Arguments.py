@@ -1,12 +1,13 @@
 #Importing modules
 
 
-import numpy as np
-import matplotlib.pyplot as plt
-import obspy
-import tqdm
 import glob
 import os
+
+import matplotlib.pyplot as plt
+import numpy as np
+import obspy
+import tqdm
 
 #Defining DATA directory
 datadir =  '../../data_SW/'
@@ -50,7 +51,7 @@ fr_vec = freq_tmp[lf_idx:hf_idx]
 Winperday = (24 * 60) / (DelT / 60) - (window_duration_sec * average / DelT /2)
 Winperyear = delta_days * Winperday
 
-
+kw_dict = {'year':'2015', 'day1': day1,'day2': day2}
 #Cluster window length
 
 

@@ -1,136 +1,164 @@
 #------------------------ importing basic packages
+import glob
+
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.signal import argrelextrema
+from scipy import ndimage, signal
 from scipy.interpolate import interp1d
-from scipy import ndimage
-from scipy import signal
+from scipy.signal import argrelextrema
 
 plt.close("all")
 
 
-
+class swnorm(object):
+    '''
+    Class that deals with the readin of spectral width 
+    and with the normalization processing
+    
+    '''
 #--------------------------- A FEW FUNCTIONS -----------
-
-#-----------------------------------------------
-# function to smooth signal
-#-----------------------------------------------
-def smooth1d(x,window_len=11,window='hanning'):
-    """smooth the data using a window with requested size.
-    
-    This method is based on the convolution of a scaled window with the signal.
-    The signal is prepared by introducing reflected copies of the signal 
-    (with the window size) in both ends so that transient parts are minimized
-    in the begining and end part of the output signal.
-    s
-    input:
-        x: the input signal 
-        window_len: the dimension of the smoothing window; should be an odd integer
-        window: the type of window from 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'
-            flat window will produce a moving average smoothing.
-
-    output:
-        the smoothed signal
+    def __init__(self,SWDIR,year_dict):
+        self.SWDIR = SWDIR
+        self.year_dict = year_dict
         
-    example:
+    def readSW(self):
+        '''
+        Function to read the spectral width from directory
+        '''
 
-    t=linspace(-2,2,0.1)
-    x=sin(t)+randn(len(t))*0.1
-    y=smooth(x)
+        spectral_year = []
+        for d in range(self.year_dict['day1'],self.year_dict['day2']):
+            print(d)
+            doy = f'{d:03}'
+            doy = str(doy)
+            SW = self.SWDIR +'/SW_' + self.year_dict['year'] + '_' +doy+ '_*'
+            SW_name  = glob.glob(SW)[0]
+            SWtmp = np.load(SW_name)
+            spectral_year.extend(SWtmp)
+        spectral_year = np.array(spectral_year).T
+
+        self.spectral_year = spectral_year
+        return spectral_year
+
+    #-----------------------------------------------
+    # function to smooth signal
+    #-----------------------------------------------
+    def smooth1d(x,window_len=11,window='hanning'):
+        """smooth the data using a window with requested size.
+        
+        This method is based on the convolution of a scaled window with the signal.
+        The signal is prepared by introducing reflected copies of the signal 
+        (with the window size) in both ends so that transient parts are minimized
+        in the begining and end part of the output signal.
+        s
+        input:
+            x: the input signal 
+            window_len: the dimension of the smoothing window; should be an odd integer
+            window: the type of window from 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'
+                flat window will produce a moving average smoothing.
+
+        output:
+            the smoothed signal
+            
+        example:
+
+        t=linspace(-2,2,0.1)
+        x=sin(t)+randn(len(t))*0.1
+        y=smooth(x)
+        
+        see also: 
+        
+        numpy.hanning, numpy.hamming, numpy.bartlett, numpy.blackman, numpy.convolve
+        scipy.signal.lfilter
     
-    see also: 
-    
-    numpy.hanning, numpy.hamming, numpy.bartlett, numpy.blackman, numpy.convolve
-    scipy.signal.lfilter
- 
-    TODO: the window parameter could be the window itself if an array instead of a string
-    NOTE: length(output) != length(input), to correct this: return y[(window_len/2-1):-(window_len/2)] instead of just y.
-    """
+        TODO: the window parameter could be the window itself if an array instead of a string
+        NOTE: length(output) != length(input), to correct this: return y[(window_len/2-1):-(window_len/2)] instead of just y.
+        """
 
-    if x.ndim != 1:
-        print("smooth only accepts 1 dimension arrays.")
+        if x.ndim != 1:
+            print("smooth only accepts 1 dimension arrays.")
 
-    if x.size < window_len:
-        print("Input vector needs to be bigger than window size.")
+        if x.size < window_len:
+            print("Input vector needs to be bigger than window size.")
 
 
-    if window_len<3:
-        return x
+        if window_len<3:
+            return x
 
 
-    if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
-        print("Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
+        if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
+            print("Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
 
 
-    s=np.r_[x[window_len-1:0:-1],x,x[-2:-window_len-1:-1]]
-    #print(len(s))
-    if window == 'flat': #moving average
-        w=np.ones(window_len,'d')
-    else:
-        w=eval('np.'+window+'(window_len)')
+        s=np.r_[x[window_len-1:0:-1],x,x[-2:-window_len-1:-1]]
+        #print(len(s))
+        if window == 'flat': #moving average
+            w=np.ones(window_len,'d')
+        else:
+            w=eval('np.'+window+'(window_len)')
 
-    y=np.convolve(w/w.sum(),x,mode='same')
-    return y
+        y=np.convolve(w/w.sum(),x,mode='same')
+        return y
 
 
-def env_sup (frec,sign_vec,hf_idx,lf_idx):
-    '''This function calculate the upper envelope of a 1d signal
-    
+    def env_sup (frec,sign_vec,hf_idx,lf_idx):
+        '''This function calculate the upper envelope of a 1d signal
+        
 
-    Parameters
-    ----------
-    frec : 1d array
-        Vector of frequencies.
-    signal : 1d array
-        Vector of the signal for which we calculate the enveloppe.
+        Parameters
+        ----------
+        frec : 1d array
+            Vector of frequencies.
+        signal : 1d array
+            Vector of the signal for which we calculate the enveloppe.
 
-    Returns
-    -------
-    Interpolating function.
+        Returns
+        -------
+        Interpolating function.
 
-    '''
-    
-    idx_max = argrelextrema(sign_vec, np.greater)
-    
-    xmax = frec[idx_max[0]]
-    ymax = sign_vec[idx_max[0]]
+        '''
+        
+        idx_max = argrelextrema(sign_vec, np.greater)
+        
+        xmax = frec[idx_max[0]]
+        ymax = sign_vec[idx_max[0]]
 
-    nmax = np.size(xmax)
-    xxmax = np.zeros(nmax+2)
-    yymax = np.zeros(nmax+2)
+        nmax = np.size(xmax)
+        xxmax = np.zeros(nmax+2)
+        yymax = np.zeros(nmax+2)
 
-    xxmax[1:nmax+1] = xmax
-    xxmax[0] = frec[0]
-#    xxmax[nmax+1] = frec[int(np.ceil(npts/2))-1-lf_idx]
-    xxmax[nmax+1] = frec[hf_idx-lf_idx-1]
+        xxmax[1:nmax+1] = xmax
+        xxmax[0] = frec[0]
+    #    xxmax[nmax+1] = frec[int(np.ceil(npts/2))-1-lf_idx]
+        xxmax[nmax+1] = frec[hf_idx-lf_idx-1]
 
-    yymax[1:nmax+1] = ymax
-    yymax[0] = ymax[0]
-    yymax[nmax+1] = ymax[nmax-1]
-    
-    
-    fav = interp1d(xxmax, yymax,kind='cubic')
-    
-    return fav
+        yymax[1:nmax+1] = ymax
+        yymax[0] = ymax[0]
+        yymax[nmax+1] = ymax[nmax-1]
+        
+        
+        fav = interp1d(xxmax, yymax,kind='cubic')
+        
+        return fav
 
-def medfilt_days(sw, nu_medw=31):
-    '''
-    Parameters
-    ----------
-    sw : array 2d
-        Covariance matrix with the spectral width.
-    nu_medw: int
-        Number of samples to make the median filter
-    **kwargs : TYPE
-        DESCRIPTION.
+    def medfilt_days(sw, nu_medw=31):
+        '''
+        Parameters
+        ----------
+        sw : array 2d
+            Covariance matrix with the spectral width.
+        nu_medw: int
+            Number of samples to make the median filter
+        **kwargs : TYPE
+            DESCRIPTION.
 
-    Returns
-    -------
-    None.
+        Returns
+        -------
+        None.
 
-    '''
-    sw_medfilt = ndimage.median_filter(sw,size=(1,int(nu_medw)))
-    return  sw_medfilt
+        '''
+        sw_medfilt = ndimage.median_filter(sw,size=(1,int(nu_medw)))
+        return  sw_medfilt
 
 
 def corrday(matrixcor, mode='same'):
@@ -180,19 +208,6 @@ def pearson_2d(x, Y):
     # return
     # LAB(end solution)
     
-    
-def corrtemplate(matrixsw, template, mode='same'):
-    lenma = matrixsw.shape
-    corrmatr = np.zeros((lenma[0],lenma[1]-1))
-    for it in np.arange(matrixsw.shape[1]-1):
-        tmp1 = matrixsw[:,it] - np.mean(matrixsw[:,it])
-        tmp2 = template.T - np.mean(template)
-        #tmp2 = matrixcor[:,it+1] - np.mean(matrixcor[:,it+1])
-        cortmp = signal.correlate(tmp1,tmp2,mode=mode)
-        #cortmp /= cortmp.max() 
-        #tmp = signal.detrend(cortmp,bp=int(lenma[0]/2))
-        corrmatr[:,it] = cortmp
-    return corrmatr
     
 # #--------------------------------------------------------------
 
