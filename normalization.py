@@ -17,9 +17,9 @@ class swnorm(object):
     
     '''
 #--------------------------- A FEW FUNCTIONS -----------
-    def __init__(self,SWDIR,year_dict):
+    def __init__(self,SWDIR,sw_dict):
         self.SWDIR = SWDIR
-        self.year_dict = year_dict
+        self.sw_dict = sw_dict
         
     def readSW(self):
         '''
@@ -27,11 +27,11 @@ class swnorm(object):
         '''
 
         spectral_year = []
-        for d in range(self.year_dict['day1'],self.year_dict['day2']):
+        for d in range(self.sw_dict['day1'],self.sw_dict['day2']):
             print(d)
             doy = f'{d:03}'
             doy = str(doy)
-            SW = self.SWDIR +'/SW_' + self.year_dict['year'] + '_' +doy+ '_*'
+            SW = self.SWDIR +'/SW_' + self.sw_dict['year'] + '_' +doy+ '_*'
             SW_name  = glob.glob(SW)[0]
             SWtmp = np.load(SW_name)
             spectral_year.extend(SWtmp)
@@ -40,106 +40,152 @@ class swnorm(object):
         self.spectral_year = spectral_year
         return spectral_year
 
-    #-----------------------------------------------
-    # function to smooth signal
-    #-----------------------------------------------
-    def smooth1d(x,window_len=11,window='hanning'):
-        """smooth the data using a window with requested size.
-        
-        This method is based on the convolution of a scaled window with the signal.
-        The signal is prepared by introducing reflected copies of the signal 
-        (with the window size) in both ends so that transient parts are minimized
-        in the begining and end part of the output signal.
-        s
-        input:
-            x: the input signal 
-            window_len: the dimension of the smoothing window; should be an odd integer
-            window: the type of window from 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'
-                flat window will produce a moving average smoothing.
-
-        output:
-            the smoothed signal
-            
-        example:
-
-        t=linspace(-2,2,0.1)
-        x=sin(t)+randn(len(t))*0.1
-        y=smooth(x)
-        
-        see also: 
-        
-        numpy.hanning, numpy.hamming, numpy.bartlett, numpy.blackman, numpy.convolve
-        scipy.signal.lfilter
-    
-        TODO: the window parameter could be the window itself if an array instead of a string
-        NOTE: length(output) != length(input), to correct this: return y[(window_len/2-1):-(window_len/2)] instead of just y.
-        """
-
-        if x.ndim != 1:
-            print("smooth only accepts 1 dimension arrays.")
-
-        if x.size < window_len:
-            print("Input vector needs to be bigger than window size.")
-
-
-        if window_len<3:
-            return x
-
-
-        if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
-            print("Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
-
-
-        s=np.r_[x[window_len-1:0:-1],x,x[-2:-window_len-1:-1]]
-        #print(len(s))
-        if window == 'flat': #moving average
-            w=np.ones(window_len,'d')
-        else:
-            w=eval('np.'+window+'(window_len)')
-
-        y=np.convolve(w/w.sum(),x,mode='same')
-        return y
-
-
-    def env_sup (frec,sign_vec,hf_idx,lf_idx):
-        '''This function calculate the upper envelope of a 1d signal
-        
-
-        Parameters
-        ----------
-        frec : 1d array
-            Vector of frequencies.
-        signal : 1d array
-            Vector of the signal for which we calculate the enveloppe.
-
-        Returns
-        -------
-        Interpolating function.
-
+    def normalization(self,smooth=0.1):
         '''
+        Function that normalize the entire spectral width
+        '''
+        lf_idx = self.sw_dict['lfidx']
+        hf_idx = self.sw_dict['hfidx']
+        fr_vec = self.sw_dict['fr_vec']
+        thres = self.sw_dict['threshold']
+        smoothN = int(smooth / self.sw_dict['DelF']) +1
         
-        idx_max = argrelextrema(sign_vec, np.greater)
-        
-        xmax = frec[idx_max[0]]
-        ymax = sign_vec[idx_max[0]]
+        sw_0 = np.zeros((hf_idx-lf_idx,self.spectral_year.shape[1]))
+        sw_fin = np.zeros((hf_idx-lf_idx,self.spectral_year.shape[1]))
 
-        nmax = np.size(xmax)
-        xxmax = np.zeros(nmax+2)
-        yymax = np.zeros(nmax+2)
+        win_info={}
+        for i in np.arange(self.spectral_year.shape[1]):
+            win_info[i]={}
+            spectral_width = smooth1d(self.spectral_year[:,i],smoothN)
+            sw_0[:,i] =  spectral_width[lf_idx:hf_idx]
+            
+            fav = env_sup(fr_vec, sw_0[:,i], hf_idx, lf_idx)
+            win_info[i]['inter_1'] = fav
+            
+            sw3 = fav(fr_vec)-sw_0[:,i]
+            
+            fav2 = env_sup(fr_vec, sw3, hf_idx, lf_idx)
+            win_info[i]['inter_2'] = fav2
+            
+            idx = sw3<thres
+            sw3[idx] = 0
+        
+            fav2tmp = fav2(fr_vec)
+            fav2tmp [np.argwhere(fav2tmp==0)] = 1e-5
+            sw3norm = sw3/fav2tmp
+            
+            idx = sw3norm>1
+            sw3norm[idx]=1   
+            sw_fin[:,i] = sw3norm
+            
+        
+        idx_neg =sw_fin<0
+        sw_fin[idx_neg]=0
 
-        xxmax[1:nmax+1] = xmax
-        xxmax[0] = frec[0]
-    #    xxmax[nmax+1] = frec[int(np.ceil(npts/2))-1-lf_idx]
-        xxmax[nmax+1] = frec[hf_idx-lf_idx-1]
+        self.sw_norm=sw_fin
+        self.envelope = win_info
 
-        yymax[1:nmax+1] = ymax
-        yymax[0] = ymax[0]
-        yymax[nmax+1] = ymax[nmax-1]
+
+#-----------------------------------------------
+# function to smooth signal
+#-----------------------------------------------
+def smooth1d(x,window_len=11,window='hanning'):
+    """smooth the data using a window with requested size.
+    
+    This method is based on the convolution of a scaled window with the signal.
+    The signal is prepared by introducing reflected copies of the signal 
+    (with the window size) in both ends so that transient parts are minimized
+    in the begining and end part of the output signal.
+    s
+    input:
+        x: the input signal 
+        window_len: the dimension of the smoothing window; should be an odd integer
+        window: the type of window from 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'
+            flat window will produce a moving average smoothing.
+
+    output:
+        the smoothed signal
         
-        
-        fav = interp1d(xxmax, yymax,kind='cubic')
-        
-        return fav
+    example:
+
+    t=linspace(-2,2,0.1)
+    x=sin(t)+randn(len(t))*0.1
+    y=smooth(x)
+    
+    see also: 
+    
+    numpy.hanning, numpy.hamming, numpy.bartlett, numpy.blackman, numpy.convolve
+    scipy.signal.lfilter
+
+    TODO: the window parameter could be the window itself if an array instead of a string
+    NOTE: length(output) != length(input), to correct this: return y[(window_len/2-1):-(window_len/2)] instead of just y.
+    """
+
+    if x.ndim != 1:
+        print("smooth only accepts 1 dimension arrays.")
+
+    if x.size < window_len:
+        print("Input vector needs to be bigger than window size.")
+
+
+    if window_len<3:
+        return x
+
+
+    if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
+        print("Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
+
+
+    s=np.r_[x[window_len-1:0:-1],x,x[-2:-window_len-1:-1]]
+    #print(len(s))
+    if window == 'flat': #moving average
+        w=np.ones(window_len,'d')
+    else:
+        w=eval('np.'+window+'(window_len)')
+
+    y=np.convolve(w/w.sum(),x,mode='same')
+    return y
+
+
+def env_sup (frec,sign_vec,hf_idx,lf_idx):
+    '''This function calculate the upper envelope of a 1d signal
+    
+
+    Parameters
+    ----------
+    frec : 1d array
+        Vector of frequencies.
+    signal : 1d array
+        Vector of the signal for which we calculate the enveloppe.
+
+    Returns
+    -------
+    Interpolating function.
+
+    '''
+    
+    idx_max = argrelextrema(sign_vec, np.greater)
+    
+    xmax = frec[idx_max[0]]
+    ymax = sign_vec[idx_max[0]]
+
+    nmax = np.size(xmax)
+    xxmax = np.zeros(nmax+2)
+    yymax = np.zeros(nmax+2)
+
+    xxmax[1:nmax+1] = xmax
+    xxmax[0] = frec[0]
+#    xxmax[nmax+1] = frec[int(np.ceil(npts/2))-1-lf_idx]
+    xxmax[nmax+1] = frec[hf_idx-lf_idx-1]
+
+    yymax[1:nmax+1] = ymax
+    yymax[0] = ymax[0]
+    yymax[nmax+1] = ymax[nmax-1]
+    
+    
+    fav = interp1d(xxmax, yymax,kind='cubic')
+    
+    return fav
 
     def medfilt_days(sw, nu_medw=31):
         '''

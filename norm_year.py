@@ -19,54 +19,19 @@ spectral_year= sw_year.readSW()
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #Windows to analyze
-
-time_vec = np.linspace(day1-1,delta_days,delta_days*SWtmp.shape[0])
-
 Eru_day =  267 #in days
-Eru_win = Eru_day * SWtmp.shape[0]
+Eru_win = Eru_day * int(Winperday)
 Noerup = 100
-Noeru_win = Noerup * SWtmp.shape[0]
+Noeru_win = Noerup * int(Winperday)
 Nosig_day = 311.22
-Nosig_win = int(np.round(Nosig_day * SWtmp.shape[0]))
+Nosig_win = int(np.round(Nosig_day * Winperday))
 
 
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #SMOOTHING
 for smoothF in ismooth:
-    smoothN = int(smoothF / DelF) +1
-    sw_0 = np.zeros((hf_idx-lf_idx,spectral_year.shape[1]))
-    sw_fin = np.zeros((hf_idx-lf_idx,spectral_year.shape[1]))
-    win_info={}
-    for i in np.arange(spectral_year.shape[1]):
-        win_info[i]={}
-        spectral_width = smooth1d(spectral_year[:,i],smoothN)
-        sw_0[:,i] =  spectral_width[lf_idx:hf_idx]
-        
-        fav = env_sup(fr_vec, sw_0[:,i], hf_idx, lf_idx)
-        win_info[i]['inter_1'] = fav
-        
-        sw3 = fav(fr_vec)-sw_0[:,i]
-        # sw3 = fav(fr_vec)-spectral_year[lf_idx:int(np.ceil(npts/2)),i]
-        
-        fav2 = env_sup(fr_vec, sw3, hf_idx, lf_idx)
-        win_info[i]['inter_2'] = fav2
-        
     
-        idx = sw3<thres
-        sw3[idx] = 0
-    
-        fav2tmp = fav2(fr_vec)
-        fav2tmp [np.argwhere(fav2tmp==0)] = 1e-5
-        sw3norm = sw3/fav2tmp
-        
-        idx = sw3norm>1
-        sw3norm[idx]=1   
-        sw_fin[:,i] = sw3norm
-        
-    
-    idx_neg =sw_fin<0
-    sw_fin[idx_neg]=0
     
     spectral_year_plot = spectral_year[lf_idx:hf_idx,:]
     n_frequencies,n_times = spectral_year_plot.shape

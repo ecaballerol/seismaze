@@ -34,7 +34,7 @@ Fn = s_rate/2 #Nyquist
 lowfreq = 1.0 #low freq idx
 hfreq = 3.0
 smoothF = 0.05 #frequency for smoothing
-ismooth = smoothF
+ismooth = [0.05]
 thres = 0.05 #threshold
 win_wien = 360
 
@@ -51,7 +51,10 @@ fr_vec = freq_tmp[lf_idx:hf_idx]
 Winperday = (24 * 60) / (DelT / 60) - (window_duration_sec * average / DelT /2)
 Winperyear = delta_days * Winperday
 
-kw_dict = {'year':'2015', 'day1': day1,'day2': day2}
+kw_dict = {'year':'2015', 'day1': day1,'day2': day2, 
+        'DelF' : DelF, 'lfidx' : lf_idx,
+        'hfidx' : hf_idx,'fr_vec':fr_vec
+        ,'threshold':thres}
 #Cluster window length
 
 
