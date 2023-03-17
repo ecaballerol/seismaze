@@ -31,7 +31,7 @@ Nosig_win = int(np.round(Nosig_day * Winperday))
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #SMOOTHING
 for smoothF in ismooth:
-    
+    sw_year.normalization(smoothF)
     
     spectral_year_plot = spectral_year[lf_idx:hf_idx,:]
     n_frequencies,n_times = spectral_year_plot.shape
@@ -54,7 +54,7 @@ for smoothF in ismooth:
     
     
     plt.figure(figsize=(15,8))
-    plt.imshow(sw_0,origin='lower',extent=[day1-1,day2-1,lowfreq,hfreq],aspect='auto',cmap='RdBu')
+    plt.imshow(sw_year.sw_smooth,origin='lower',extent=[day1-1,day2-1,lowfreq,hfreq],aspect='auto',cmap='RdBu')
     plt.colorbar()
     plt.yscale('symlog',linthresh=1e-1,subs=[2,3,4,5,6,7,8,9])
     plt.ylim(lowfreq,hfreq)
@@ -68,7 +68,7 @@ for smoothF in ismooth:
     plt.savefig(filename)
     
     fig, ax = plt.subplots(1, figsize=(11, 6))
-    img = ax.imshow(sw_fin,origin='lower',extent=[day1-1,day2-1,lowfreq,hfreq],aspect='auto',cmap='viridis')
+    img = ax.imshow(sw_year.sw_norm,origin='lower',extent=[day1-1,day2-1,lowfreq,hfreq],aspect='auto',cmap='viridis')
     # img = ax.pcolorfast(times, fr_vec, sw_fin, rasterized=True, cmap="viridis")
     ax.set_xlabel('days')
     ax.set_ylabel('Frequency, Hz')
@@ -86,10 +86,7 @@ for smoothF in ismooth:
     plt.savefig(filename)
     plt.close('all')
 
-    #Median filter
-    win_medfilt =  360 #In minutes
-    mfiltnum = win_medfilt*60 / DelT +1
-    sw_median = medfilt_days(sw_fin,int(mfiltnum))
+    sw_median = sw_year.msw_median(win_medfilt)
     
     plt.figure(figsize=(15,8))
     plt.imshow(sw_median,origin='lower',extent=[day1-1,day2-1,lowfreq,hfreq],aspect='auto',cmap='viridis',vmin=0,vmax=1)

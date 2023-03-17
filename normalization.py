@@ -83,7 +83,17 @@ class swnorm(object):
         sw_fin[idx_neg]=0
 
         self.sw_norm=sw_fin
+        self.sw_smooth = sw_0
         self.envelope = win_info
+
+    def sw_median(self,medfilt=300):
+        '''
+        Function to obtian the median filtered sw
+        
+        '''
+        mfiltnum = medfilt*60 / DelT +1
+        sw_median = medfilt_days(self.sw_norm,int(mfiltnum))
+        return sw_median
 
 
 #-----------------------------------------------
@@ -187,24 +197,24 @@ def env_sup (frec,sign_vec,hf_idx,lf_idx):
     
     return fav
 
-    def medfilt_days(sw, nu_medw=31):
-        '''
-        Parameters
-        ----------
-        sw : array 2d
-            Covariance matrix with the spectral width.
-        nu_medw: int
-            Number of samples to make the median filter
-        **kwargs : TYPE
-            DESCRIPTION.
+def medfilt_days(sw, nu_medw=31):
+    '''
+    Parameters
+    ----------
+    sw : array 2d
+        Covariance matrix with the spectral width.
+    nu_medw: int
+        Number of samples to make the median filter
+    **kwargs : TYPE
+        DESCRIPTION.
 
-        Returns
-        -------
-        None.
+    Returns
+    -------
+    None.
 
-        '''
-        sw_medfilt = ndimage.median_filter(sw,size=(1,int(nu_medw)))
-        return  sw_medfilt
+    '''
+    sw_medfilt = ndimage.median_filter(sw,size=(1,int(nu_medw)))
+    return  sw_medfilt
 
 
 def corrday(matrixcor, mode='same'):
@@ -255,234 +265,3 @@ def pearson_2d(x, Y):
     # LAB(end solution)
     
     
-# #--------------------------------------------------------------
-
-# #------------------- frequencies
-# nfreq = int(1e5)
-
-# f = .01*np.arange(nfreq) + 100
-
-
-# #------------------------- noise
-# nnoise = int(nfreq+2/100)
-
-# fnoise = np.arange(nnoise)
-
-# noise1 = .15*(np.random.rand(nnoise)-.5)
-
-# fn = interp1d(fnoise, noise1)
-
-# noise = fn(f)
-
-
-# #------------------------------------------------------- synthetic spectral line maxima distribution
-# sw0 = np.sin(f**.7 + np.sin(.12*f))**2*np.cos(.075*f)**2
-
-
-# sw_av = smooth1d(sw0,3000)
-
-# idx_max = argrelextrema(sw_av, np.greater)
-
-# xmax = f[idx_max]
-# ymax = sw_av[idx_max]
-
-# nmax = np.size(xmax)
-# xxmax = np.zeros(nmax+2)
-# yymax = np.zeros(nmax+2)
-
-# xxmax[1:nmax+1] = xmax
-# xxmax[0] = f[0]
-# xxmax[nmax+1] = f[nfreq-1]
-
-# yymax[1:nmax+1] = ymax
-# yymax[0] = ymax[0]
-# yymax[nmax+1] = ymax[nmax-1]
-
-
-# #------------------------ averaging cleaning and normalizing 
-# idx = sw_av<.1
-# sw1 = sw_av
-# sw1[idx] = 0
-
-# fav = interp1d(xxmax, yymax)
-
-# sw0norm = sw1/fav(f)
-# idx = sw0norm>1
-# sw0norm[idx]=1
-
-
-
-# #-------------
-# plt.figure()
-
-# plt.title('initial spectral lines')
-
-# plt.plot(f,sw0)
-
-# plt.xlabel('frequency')
-# plt.show()
-
-
-# #-------------
-# plt.figure()
-
-# plt.title('smmothed and normalized initial spectral lines')
-
-# plt.plot(f,sw0norm)
-
-# plt.xlabel('frequency')
-# plt.show()
-
-
-# #-------------
-# plt.figure()
-
-# plt.title('niose')
-
-# plt.plot(f,noise)
-
-# plt.xlabel('frequency')
-# plt.show()
-
-
-
-# #--------------------------------------- raw synthetic spectrl width
-# sw = 1-sw0 + np.cos(.013*f) + 2 + noise
-
-
-
-# #-------------
-# plt.figure()
-
-# plt.title('synthetic spectral width')
-
-# plt.plot(f,sw)
-
-# plt.xlabel('frequency')
-# plt.show()
-
-
-
-
-
-
-# #---------------------------------------- averaging 
-
-# sw_av = smooth1d(sw,3000)
-
-# idx_max = argrelextrema(sw_av, np.greater)
-
-# xmax = f[idx_max]
-# ymax = sw_av[idx_max]
-
-# nmax = np.size(xmax)
-# xxmax = np.zeros(nmax+2)
-# yymax = np.zeros(nmax+2)
-
-# xxmax[1:nmax+1] = xmax
-# xxmax[0] = f[0]
-# xxmax[nmax+1] = f[nfreq-1]
-
-# yymax[1:nmax+1] = ymax
-# yymax[0] = ymax[0]
-# yymax[nmax+1] = ymax[nmax-1]
-
-
-
-
-# #-------------
-# plt.figure()
-
-# plt.title('smoothed spectral width and upper envelope')
-
-# plt.plot(f,sw_av)
-# plt.plot(xxmax,yymax)
-
-# plt.xlabel('frequency')
-# plt.show()
-
-
-# fav = interp1d(xxmax, yymax, kind='cubic')
-
-
-# #----------------- removing upper envelope
-# sw3 = fav(f)-sw_av
-
-
-# idx_max2 = argrelextrema(sw3, np.greater)
-# xmax = f[idx_max2]
-# ymax = sw3[idx_max2]
-
-# nmax = np.size(xmax)
-# xxmax = np.zeros(nmax+2)
-# yymax = np.zeros(nmax+2)
-
-# xxmax[1:nmax+1] = xmax
-# xxmax[0] = f[0]
-# xxmax[nmax+1] = f[nfreq-1]
-
-# yymax[1:nmax+1] = ymax
-# yymax[0] = ymax[0]
-# yymax[nmax+1] = ymax[nmax-1]
-
-
-# #-------------
-# plt.figure()
-
-# plt.title('removed upper envelope')
-
-# plt.plot(f,sw3)
-# plt.plot(xxmax,yymax)
-
-# plt.xlabel('frequency')
-# plt.show()
-
-
-# idx = sw3<.1
-# sw3[idx] = 0
-
-# fav2 = interp1d(xxmax, yymax)
-
-# sw3norm = sw3/fav2(f)
-# idx = sw3norm>1
-# sw3norm[idx]=1
-
-
-
-
-# #-------------
-# plt.figure()
-
-# plt.title('comparizon of input and output')
-
-# plt.plot(f,sw0)
-# plt.plot(f,sw3)
-
-# plt.xlabel('frequency')
-# plt.show()
-
-
-# #-------------
-# plt.figure()
-
-# plt.title('normalized output')
-
-# plt.plot(f,sw3norm)
-
-# plt.xlabel('frequency')
-# plt.show()
-
-
-# #-------------
-# plt.figure()
-
-# plt.title('comparizon of normalized input and output')
-
-# plt.plot(f,sw0norm)
-# plt.plot(f,sw3norm)
-
-# plt.xlabel('frequency')
-# plt.show()
-
-
-
