@@ -9,7 +9,7 @@ import glob
 import os
 
 #Defining DATA directory
-datadir =  '../data_SW/'
+datadir =  '../../data_SW/'
 
 #Defining date arguments
 day1 = 1
@@ -26,13 +26,14 @@ preproc_spectral_secs = window_duration_sec * average * overlap
 
 #Name of the SW files
 SWdir = 'output_wdur' + str(window_duration_sec) + 's' + '_av' + str(average)
-ODIR = os.path.join(datadir,SWdir)
+ODIR = os.path.join(datadir,year,SWdir)
 #Defining the signal parameters
 s_rate = 20 #signal rate
 Fn = s_rate/2 #Nyquist
 lowfreq = 1.0 #low freq idx
 hfreq = 3.0
 smoothF = 0.05 #frequency for smoothing
+ismooth = smoothF
 thres = 0.05 #threshold
 win_wien = 360
 
