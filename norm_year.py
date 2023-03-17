@@ -53,14 +53,15 @@ for smoothF in ismooth:
     plt.savefig(filename)
     
     
-    plt.figure(figsize=(15,8))
-    plt.imshow(sw_year.sw_smooth,origin='lower',extent=[day1-1,day2-1,lowfreq,hfreq],aspect='auto',cmap='RdBu')
-    plt.colorbar()
-    plt.yscale('symlog',linthresh=1e-1,subs=[2,3,4,5,6,7,8,9])
-    plt.ylim(lowfreq,hfreq)
-    plt.xlim(1,345)
-    plt.ylabel('Frequency Hz')
-    plt.xlabel('days')
+    fig, ax = plt.subplots(1, figsize=(11, 6))
+    ax.imshow(sw_year.sw_smooth,origin='lower',extent=[day1-1,day2-1,lowfreq,hfreq],aspect='auto',cmap='RdBu')
+    plt.colorbar(img,ax=ax)
+    ax.set_yscale('symlog',linthresh=1e-1,subs=[2,3,4,5,6,7,8,9])
+    ax.set_yticks(np.arange(11))
+    ax.yaxis.set_major_formatter(ticker.ScalarFormatter())
+    ax.set_ylim(lowfreq,hfreq)
+    ax.set_xlabel('days')
+    ax.set_ylabel('Frequency, Hz')
     plt.title('smoothed spectral width: ' + str(smoothF) + 'Hz' )
     filename = 'Year_Smooth/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) + '_smooth_' + str(smoothF) + 'Hz_erup.png'
     plt.savefig(filename,dpi=200)
@@ -86,7 +87,8 @@ for smoothF in ismooth:
     plt.savefig(filename)
     plt.close('all')
 
-    sw_median = sw_year.msw_median(win_medfilt)
+    win_medfilt = 360 #in minutes
+    sw_median = sw_year.sw_median(win_medfilt)
     
     plt.figure(figsize=(15,8))
     plt.imshow(sw_median,origin='lower',extent=[day1-1,day2-1,lowfreq,hfreq],aspect='auto',cmap='viridis',vmin=0,vmax=1)
@@ -97,7 +99,7 @@ for smoothF in ismooth:
     plt.ylabel('Frequency Hz')
     plt.xlabel('days')
     plt.title('Normalized spectral width with median filter: ' + str(win_medfilt) + 'min')
-    filename = 'Year_Median_filt/' + year +'_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + \
+    filename = 'Year_Median/' + year +'_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + \
          str(window_duration_sec) + 's_av' + str(average) \
         + '_sm_' + str(smoothF) + 'Hz_norm' +'_thres_' + str(thres) + 'medfilt_' + str(win_medfilt) + 'm.png'
     plt.savefig(filename,dpi=300)
@@ -112,7 +114,7 @@ for smoothF in ismooth:
         #win_wien =  720 #In minutes
         wiennum = win_wien*60 / DelT +1
         # sw_wiener = wiener(sw_fin)
-        sw_wiener = wiener(sw_fin,(1,int(wiennum)))
+        sw_wiener = wiener(sw_year.sw_norm,(1,int(wiennum)))
         plt.figure(figsize=(15,8))
         plt.imshow(sw_wiener,origin='lower',extent=[day1-1,day2-1,lowfreq,hfreq],aspect='auto',cmap='viridis',vmin=0,vmax=1)
         plt.colorbar()
@@ -157,7 +159,7 @@ sw_dict = {}
 
 sw_dict['wiener'] = sw_wiener
 sw_dict['median'] = sw_median
-sw_dict['norm'] = sw_fin
+sw_dict['norm'] = sw_year.sw_norm
     
 sw_file = year + '_SW_bp' + str(lowfreq) + '_' + str(hfreq) + '_win_' + str(window_duration_sec) + '_av_' + str(average) + '_sm_' + str(smoothF) + '_Hz_thres_' + str(thres) + '.npy'
 np.save(sw_file,sw_dict)

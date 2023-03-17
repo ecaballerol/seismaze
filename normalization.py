@@ -91,6 +91,8 @@ class swnorm(object):
         Function to obtian the median filtered sw
         
         '''
+        print('Applying Median Filter to SW')
+        DelT = self.sw_dict['DelT']
         mfiltnum = medfilt*60 / DelT +1
         sw_median = medfilt_days(self.sw_norm,int(mfiltnum))
         return sw_median
