@@ -38,7 +38,7 @@ class swnorm(object):
                 SWtmp = np.load(SW_name)
                 spectral_year.extend(SWtmp)
             except:
-                spectral_year.extend(spectral_year[-int(winday):]) 
+                spectral_year.extend(spectral_year[-int(self.sw_dict['Winperday']):]) 
         spectral_year = np.array(spectral_year).T
 
         self.spectral_year = spectral_year

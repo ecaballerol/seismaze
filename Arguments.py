@@ -25,6 +25,7 @@ average = 20
 overlap = 0.5
 preproc_spectral_secs = window_duration_sec * average * overlap
 
+
 #Name of the SW files
 SWdir = 'output_wdur' + str(window_duration_sec) + 's' + '_av' + str(average)
 ODIR = os.path.join(datadir,year,SWdir)
@@ -54,7 +55,7 @@ Winperyear = delta_days * Winperday
 win_medfilt = 360 #in minutes
 wien_lens = [360] #Wiener filter in minutes
 
-kw_dict = {'year':'2015', 'day1': day1,'day2': day2, 
+kw_dict = {'year':'2015', 'day1': day1,'day2': day2, 'Winperday':Winperday, 
         'DelF' : DelF, 'DelT':DelT ,'lowfreq': lowfreq,'lfidx' : lf_idx,
         'hfreq':hfreq,'hfidx' : hf_idx,'fr_vec':fr_vec
         ,'threshold':thres}
