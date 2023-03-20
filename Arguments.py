@@ -58,7 +58,10 @@ kw_dict = {'year':'2015', 'day1': day1,'day2': day2,
         'DelF' : DelF, 'DelT':DelT ,'lowfreq': lowfreq,'lfidx' : lf_idx,
         'hfreq':hfreq,'hfidx' : hf_idx,'fr_vec':fr_vec
         ,'threshold':thres}
-#Cluster window length
+
+#Clusters parameters
+CC_threshold = 0.25
+Len_stacking = 1440 * 3 #in minutes
 
 
 
