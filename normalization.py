@@ -3,6 +3,7 @@ import glob
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib import ticker
 from scipy import ndimage, signal
 from scipy.interpolate import interp1d
 from scipy.signal import argrelextrema
@@ -266,4 +267,15 @@ def pearson_2d(x, Y):
     # return
     # LAB(end solution)
     
-    
+def plot_swmat(swmatrix,times,plot_dict,title,filename):
+    fr_vec = plot_dict['fr_vec']
+    fig, ax = plt.subplots(1, figsize=(11, 6))
+    img = ax.pcolorfast(times, fr_vec, swmatrix, rasterized=True, cmap="RdBu")
+    ax.set_xlabel('days')
+    ax.set_ylabel('Frequency, Hz')
+    ax.set_yscale('symlog',linthresh=1e-1,subs=[2,3,4,5,6,7,8,9,10])
+    ax.set_yticks(np.arange(11))
+    ax.set_ylim(plot_dict['lowfreq'],plot_dict['hfreq'])
+    plt.colorbar(img, ax=ax)
+    ax.yaxis.set_major_formatter(ticker.ScalarFormatter())
+    ax.set_title(title)
