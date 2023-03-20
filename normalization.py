@@ -29,13 +29,16 @@ class swnorm(object):
 
         spectral_year = []
         for d in range(self.sw_dict['day1'],self.sw_dict['day2']):
-            print(d)
-            doy = f'{d:03}'
-            doy = str(doy)
-            SW = self.SWDIR +'/SW_' + self.sw_dict['year'] + '_' +doy+ '_*'
-            SW_name  = glob.glob(SW)[0]
-            SWtmp = np.load(SW_name)
-            spectral_year.extend(SWtmp)
+            try:
+                print(d)
+                doy = f'{d:03}'
+                doy = str(doy)
+                SW = self.SWDIR +'/SW_' + self.sw_dict['year'] + '_' +doy+ '_*'
+                SW_name  = glob.glob(SW)[0]
+                SWtmp = np.load(SW_name)
+                spectral_year.extend(SWtmp)
+            except:
+                spectral_year.extend(spectral_year[-int(winday):]) 
         spectral_year = np.array(spectral_year).T
 
         self.spectral_year = spectral_year
