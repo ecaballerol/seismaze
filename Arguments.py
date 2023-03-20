@@ -51,9 +51,12 @@ fr_vec = freq_tmp[lf_idx:hf_idx]
 Winperday = (24 * 60) / (DelT / 60) - (window_duration_sec * average / DelT /2)
 Winperyear = delta_days * Winperday
 
+win_medfilt = 360 #in minutes
+wien_lens = [360] #Wiener filter in minutes
+
 kw_dict = {'year':'2015', 'day1': day1,'day2': day2, 
-        'DelF' : DelF, 'DelT':DelT ,'lfidx' : lf_idx,
-        'hfidx' : hf_idx,'fr_vec':fr_vec
+        'DelF' : DelF, 'DelT':DelT ,'lowfreq': lowfreq,'lfidx' : lf_idx,
+        'hfreq':hfreq,'hfidx' : hf_idx,'fr_vec':fr_vec
         ,'threshold':thres}
 #Cluster window length
 
