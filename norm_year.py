@@ -132,8 +132,6 @@ for smoothF in ismooth:
         plt.savefig(filename)
         plt.close('all')
 
-xtime = signal.correlation_lags(sw_wiener.shape[0],sw_wiener.shape[0],mode='same')
-sw_corr = corrday(sw_wiener)
 sw_corrcoef = np.corrcoef(sw_wiener.T,rowvar='False')
 
 plt.figure(figsize=(15,8))
