@@ -1,5 +1,4 @@
 # import covseisnet as csn
-import glob
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -8,9 +7,8 @@ from matplotlib import ticker
 from scipy import signal
 from scipy.signal import wiener
 
-from Arguments import *
 import normalization as swm
-
+from Arguments import *
 
 sw_year = swm.swnorm(ODIR,kw_dict)
 #READING THE DATA 
@@ -36,77 +34,39 @@ for smoothF in ismooth:
     spectral_year_plot = spectral_year[lf_idx:hf_idx,:]
     n_frequencies,n_times = spectral_year_plot.shape
     times = np.linspace(0, 1, n_times) * delta_days
-    
-    fig, ax = plt.subplots(1, figsize=(11, 6))
-    img = ax.pcolorfast(times, fr_vec, spectral_year_plot, rasterized=True, cmap="RdBu")
-    ax.set_xlabel('days')
-    ax.set_ylabel('Frequency, Hz')
-    ax.set_yscale('symlog',linthresh=1e-1,subs=[2,3,4,5,6,7,8,9,10])
-    ax.set_yticks(np.arange(11))
-    ax.set_ylim(lowfreq,hfreq)
-    plt.colorbar(img, ax=ax)
-    ax.yaxis.set_major_formatter(ticker.ScalarFormatter())
-    plt.title('spectral width:' + year)
+    #Spectral year original
+    title = 'Spectral width:' + year
     filename = 'Year/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) + '_erup.png'
-    plt.savefig(filename,dpi=200)
+    swm.plot_swmat(spectral_year_plot,times,kw_dict,title=title,filename=filename)
     filename = 'Year_Figures/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) + '_erup.pdf'
-    plt.savefig(filename)
-    
-    
-    fig, ax = plt.subplots(1, figsize=(11, 6))
-    ax.imshow(sw_year.sw_smooth,origin='lower',extent=[day1-1,day2-1,lowfreq,hfreq],aspect='auto',cmap='RdBu')
-    plt.colorbar(img,ax=ax)
-    ax.set_yscale('symlog',linthresh=1e-1,subs=[2,3,4,5,6,7,8,9])
-    ax.set_yticks(np.arange(11))
-    ax.yaxis.set_major_formatter(ticker.ScalarFormatter())
-    ax.set_ylim(lowfreq,hfreq)
-    ax.set_xlabel('days')
-    ax.set_ylabel('Frequency, Hz')
-    plt.title('smoothed spectral width: ' + str(smoothF) + 'Hz' )
+    swm.plot_swmat(spectral_year_plot,times,kw_dict,title=title,filename=filename)
+    #Spectral year smoothed
+    title = 'Smoothed Spectral width:' + year + ' smoothed: ' + str(smoothF) + 'Hz'
     filename = 'Year_Smooth/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) + '_smooth_' + str(smoothF) + 'Hz_erup.png'
-    plt.savefig(filename,dpi=200)
+    swm.plot_swmat(sw_year.sw_smooth,times,kw_dict,title=title,filename=filename)
     filename = 'Year_Figures/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) + '_smooth_' + str(smoothF) + 'Hz_erup.pdf'
-    plt.savefig(filename)
-    
-    fig, ax = plt.subplots(1, figsize=(11, 6))
-    img = ax.imshow(sw_year.sw_norm,origin='lower',extent=[day1-1,day2-1,lowfreq,hfreq],aspect='auto',cmap='viridis')
-    # img = ax.pcolorfast(times, fr_vec, sw_fin, rasterized=True, cmap="viridis")
-    ax.set_xlabel('days')
-    ax.set_ylabel('Frequency, Hz')
-    ax.set_yscale('symlog',linthresh=1e-1,subs=[2,3,4,5,6,7,8,9,10])
-    ax.set_yticks(np.arange(11))
-    ax.set_ylim(lowfreq,hfreq)
-    plt.colorbar(img, ax=ax)
-    ax.yaxis.set_major_formatter(ticker.ScalarFormatter())
-    plt.title('Normalized spectral width, smooth:' + str(smoothF) + 'Hz')
+    swm.plot_swmat(sw_year.sw_smooth,times,kw_dict,title=title,filename=filename)
+    #Spectral year normalized
+    title = 'Normalized spectral width, smooth:' + str(smoothF) + 'Hz'
     filename = 'Year_SW_spec/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average)  \
         + '_sm_' + str(smoothF) + 'Hz_norm' +'_thres_' + str(thres) + '.png'
-    plt.savefig(filename,dpi=400)
-    filename = 'Year_Figures/' + year +'_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) \
+    swm.plot_swmat(sw_year.sw_norm,times,kw_dict,title=title,filename=filename,cmap='viridis')
+    filename = 'Year_SW_spec/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average)  \
         + '_sm_' + str(smoothF) + 'Hz_norm' +'_thres_' + str(thres) + '.pdf'
-    plt.savefig(filename)
+    swm.plot_swmat(sw_year.sw_norm,times,kw_dict,title=title,filename=filename,cmap='viridis')
+    
     plt.close('all')
 
-    win_medfilt = 360 #in minutes
     sw_median = sw_year.sw_median(win_medfilt)
     
-    plt.figure(figsize=(15,8))
-    plt.imshow(sw_median,origin='lower',extent=[day1-1,day2-1,lowfreq,hfreq],aspect='auto',cmap='viridis',vmin=0,vmax=1)
-    plt.colorbar()
-    plt.yscale('symlog',linthresh=1e-1,subs=[2,3,4,5,6,7,8,9])
-    plt.ylim(lowfreq,hfreq)
-    plt.xlim(1,345)
-    plt.ylabel('Frequency Hz')
-    plt.xlabel('days')
-    plt.title('Normalized spectral width with median filter: ' + str(win_medfilt) + 'min')
+    title='Normalized spectral width with median filter: ' + str(win_medfilt) + 'min'
     filename = 'Year_Median/' + year +'_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + \
          str(window_duration_sec) + 's_av' + str(average) \
         + '_sm_' + str(smoothF) + 'Hz_norm' +'_thres_' + str(thres) + 'medfilt_' + str(win_medfilt) + 'm.png'
-    plt.savefig(filename,dpi=300)
+    swm.plot_swmat(sw_median,times,kw_dict,title=title,filename=filename,cmap='viridis')
     filename = 'Year_Figures/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) + '_sm_' + str(smoothF) + 'Hz_norm' +'_thres_' \
         + str(thres) + 'medfilt_' + str(win_medfilt) + 'm.pdf'
-    plt.savefig(filename)
-    plt.close('all')
+    swm.plot_swmat(sw_median,times,kw_dict,title=title,filename=filename,cmap='viridis')
 
     #Wienner filter
     wien_lens = [360]
