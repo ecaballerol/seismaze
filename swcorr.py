@@ -69,7 +69,6 @@ class swcorr(object):
 
 
 def plot_CC(CC,times,plot_dict,title,filename,cmap='RdBu'):
-    fr_vec = plot_dict['fr_vec']
     fig, ax = plt.subplots(1, figsize=(9, 8))
     img = ax.pcolorfast(times, times, CC, rasterized=False, cmap=cmap,vmin=0)
     ax.set_xlabel('days')
