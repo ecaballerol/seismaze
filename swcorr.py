@@ -35,11 +35,11 @@ class swcorr(object):
             self.eigenvalues = np.abs(eigvals(self.CC))
         return self.eigenvalues
     
-    def defineClusters(self,numClust=None):
+    def defineClusters(self,numClust=None,thres=0.2):
         if numClust is not None:
             self.NumClusters = numClust
         else:
-            self.NumClusters = np.argwhere(self.eigenvalues/self.eigenvalues.max()<0.20)[0][0]
+            self.NumClusters = np.argwhere(self.eigenvalues/self.eigenvalues.max()<thres)[0][0]
 
     def ClusterCal(self):
         self.nclust = {}
@@ -68,11 +68,11 @@ class swcorr(object):
 
 
 
-def plot_CC(CC,times,plot_dict,title,filename,cmap='RdBu'):
+def plot_CC(CC,times,plot_dict,title,filename,labels='days',cmap='RdBu'):
     fig, ax = plt.subplots(1, figsize=(9, 8))
     img = ax.pcolorfast(times, times, CC, rasterized=False, cmap=cmap,vmin=0)
-    ax.set_xlabel('days')
-    ax.set_ylabel('days')
+    ax.set_xlabel(labels)
+    ax.set_ylabel(labels)
     # ax.set_yscale('symlog',linthresh=1e-1,subs=[2,3,4,5,6,7,8,9,10])
     # ax.set_yticks(np.arange(11))
     # ax.set_ylim(plot_dict['lowfreq'],plot_dict['hfreq'])
