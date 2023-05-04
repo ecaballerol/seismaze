@@ -9,7 +9,7 @@ from scipy.signal import wiener
 
 import normalization as swm
 from Arguments import *
-
+plt.rcParams.update({'font.size': 14})
 sw_year = swm.swnorm(ODIR,kw_dict)
 #READING THE DATA 
     
@@ -97,7 +97,7 @@ plt.ylim(day1-1,day2-1)
 plt.xlim(day1-1,day2-1)
 plt.ylabel('days')
 plt.xlabel('days')
-plt.title('Normalized spectral width with wiener filter: ' + str(win_wien) + 'min (' + str(lowfreq) + '-' + str(hfreq) + ' Hz)')
+plt.title('Correlation Coefficient Matrix: ('  + str(lowfreq) + '-' + str(hfreq) + ' Hz)')
 filename = 'Year_Norm/' + year +'_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_CorrCoef_win' + str(window_duration_sec) + 's_av' + str(average) \
     + '_sm_' + str(smoothF) + 'Hz_norm' +'_thres_' + str(thres) + 'wienfilt_' + str(win_wien) + 'min.png'
 plt.savefig(filename,dpi=300)
