@@ -57,10 +57,25 @@ class swcorr(object):
             excluding.extend(idx_clus)
             sw_corrtmp[idx_clus,:]=0
             sw_corrtmp[:,idx_clus]=0
+            #Iterative step 2 of Soubestre et al. 2018
+            idx_iter = copy.copy(idx_clus)
+            for iter in np.arange(4):
+                cc_whole = copy.deepcopy(self.CC)
+                CC_cluster = []
+                for count, idxCC in enumerate(idx_iter):
+                    CC_cluster.append(np.sum(cc_whole[idxCC,idx_iter]))
+                CC_cluster = np.array(CC_cluster)
+                max_tmp = np.argmax(CC_cluster)
+                idx_tmp = np.where(cc_whole[idx_iter[max_tmp],:]>self.CC_thres)[0]
+                #print('For cluster: ',iclus, 'index: ',idx_iter[max_tmp])
+                idx_iter = idx_tmp
             self.nclust[iclus]['CCstack'] = CC_stack
             self.nclust[iclus]['maxstack'] = max_stack
             self.nclust[iclus]['idx_clus'] = idx_clus
             self.nclust[iclus]['sw_tem'] = np.mean(self.SW[:,idx_clus],axis=1)
+            self.nclust[iclus]['CC_cluster'] = CC_cluster
+            self.nclust[iclus]['idx_iter'] = idx_iter
+            self.nclust[iclus]['CC_tem'] = np.mean(self.SW[:,idx_iter],axis=1)
 
         return
 
