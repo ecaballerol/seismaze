@@ -270,9 +270,9 @@ def pearson_2d(x, Y):
     # return
     # LAB(end solution)
     
-def plot_swmat(swmatrix,times,plot_dict,title,filename,labels='days',cmap='RdBu'):
+def plot_swmat(swmatrix,times,plot_dict,title,filename,figsize=(11, 6),labels='days',cmap='RdBu'):
     fr_vec = plot_dict['fr_vec']
-    fig, ax = plt.subplots(1, figsize=(11, 6))
+    fig, ax = plt.subplots(1, figsize=figsize)
     img = ax.pcolorfast(times, fr_vec, swmatrix, rasterized=False, cmap=cmap)
     ax.set_xlabel(labels)
     ax.set_ylabel('Frequency, Hz')
