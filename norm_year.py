@@ -2,14 +2,17 @@
 
 import matplotlib
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 import numpy as np
 from matplotlib import ticker
 from scipy import signal
 from scipy.signal import wiener
+import datetime
 
 import normalization as swm
 from Arguments import *
 plt.rcParams.update({'font.size': 14})
+
 sw_year = swm.swnorm(ODIR,kw_dict)
 #READING THE DATA 
     
@@ -25,35 +28,43 @@ Nosig_day = 311.22
 Nosig_win = int(np.round(Nosig_day * Winperday))
 
 
+spectral_year_plot = spectral_year[lf_idx:hf_idx,:]
+n_frequencies,n_times = spectral_year_plot.shape
+times = np.linspace(0, 1, n_times) * delta_days + day1
 
+epoch = datetime.datetime(int(year),1,1,0)
+months = []
+for itimes in times:
+    # time_mon = epoch+timedelta(days=itimes)
+    months.append(epoch+datetime.timedelta(days=itimes-1))
+#time_mon = np.array(time_mon,dtype='datetime64')
+months = mdates.date2num(months)
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #SMOOTHING
 for smoothF in ismooth:
     sw_year.normalization(smoothF)
     
-    spectral_year_plot = spectral_year[lf_idx:hf_idx,:]
-    n_frequencies,n_times = spectral_year_plot.shape
-    times = np.linspace(0, 1, n_times) * delta_days
+    
     #Spectral year original
     title = 'Spectral width:' + year
     filename = 'Year_Norm/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) + '_erup.png'
-    swm.plot_swmat(spectral_year_plot,times,kw_dict,title=title,filename=filename)
+    swm.plot_swmat(spectral_year_plot,months,kw_dict,title=title,filename=filename,figsize=(12,5),labels='months')
     filename = 'Year_Figures/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) + '_erup.pdf'
-    swm.plot_swmat(spectral_year_plot,times,kw_dict,title=title,filename=filename)
+    swm.plot_swmat(spectral_year_plot,times,kw_dict,title=title,filename=filename,figsize=(13,5),labels='months')
     #Spectral year smoothed
     title = 'Smoothed Spectral width:' + year + ' smoothed: ' + str(smoothF) + 'Hz'
     filename = 'Year_Norm/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) + '_smooth_' + str(smoothF) + 'Hz_erup.png'
-    swm.plot_swmat(sw_year.sw_smooth,times,kw_dict,title=title,filename=filename)
+    swm.plot_swmat(sw_year.sw_smooth,times,kw_dict,title=title,filename=filename,figsize=(12,5),labels='months')
     filename = 'Year_Figures/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) + '_smooth_' + str(smoothF) + 'Hz_erup.pdf'
-    swm.plot_swmat(sw_year.sw_smooth,times,kw_dict,title=title,filename=filename)
+    swm.plot_swmat(sw_year.sw_smooth,times,kw_dict,title=title,filename=filename,figsize=(12,5),labels='months')
     #Spectral year normalized
     title = 'Normalized spectral width, smooth:' + str(smoothF) + 'Hz'
     filename = 'Year_Norm/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average)  \
         + '_sm_' + str(smoothF) + 'Hz_norm' +'_thres_' + str(thres) + '.png'
-    swm.plot_swmat(sw_year.sw_norm,times,kw_dict,title=title,filename=filename,cmap='viridis')
+    swm.plot_swmat(sw_year.sw_norm,times,kw_dict,title=title,filename=filename,cmap='viridis',figsize=(12,5),labels='months')
     filename = 'Year_Figures/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average)  \
         + '_sm_' + str(smoothF) + 'Hz_norm' +'_thres_' + str(thres) + '.pdf'
-    swm.plot_swmat(sw_year.sw_norm,times,kw_dict,title=title,filename=filename,cmap='viridis')
+    swm.plot_swmat(sw_year.sw_norm,times,kw_dict,title=title,filename=filename,cmap='viridis',figsize=(12,5),labels='months')
     
     plt.close('all')
 
@@ -63,10 +74,10 @@ for smoothF in ismooth:
     filename = 'Year_Norm/' + year +'_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + \
          str(window_duration_sec) + 's_av' + str(average) \
         + '_sm_' + str(smoothF) + 'Hz_norm' +'_thres_' + str(thres) + 'medfilt_' + str(win_medfilt) + 'm.png'
-    swm.plot_swmat(sw_median,times,kw_dict,title=title,filename=filename,cmap='viridis')
+    swm.plot_swmat(sw_median,times,kw_dict,title=title,filename=filename,cmap='viridis',figsize=(12,5),labels='months')
     filename = 'Year_Figures/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) + '_sm_' + str(smoothF) + 'Hz_norm' +'_thres_' \
         + str(thres) + 'medfilt_' + str(win_medfilt) + 'm.pdf'
-    swm.plot_swmat(sw_median,times,kw_dict,title=title,filename=filename,cmap='viridis')
+    swm.plot_swmat(sw_median,times,kw_dict,title=title,filename=filename,cmap='viridis',figsize=(12,5),labels='months')
 
     
     for win_wien in wien_lens:
@@ -77,10 +88,10 @@ for smoothF in ismooth:
         title='Normalized spectral width with wiener filter: ' + str(win_wien) + 'min'
         filename = 'Year_Norm/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) \
             + '_sm_' + str(smoothF) + 'Hz_norm' +'_thres_' + str(thres) + 'wienfilt_' + str(win_wien) + 'm.png'
-        swm.plot_swmat(sw_wiener,times,kw_dict,title=title,filename=filename,cmap='viridis')
+        swm.plot_swmat(sw_wiener,times,kw_dict,title=title,filename=filename,cmap='viridis',figsize=(12,5),labels='months')
         filename = 'Year_Figures/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) \
             + '_sm_' + str(smoothF) + 'Hz_norm' +'_thres_' + str(thres) + 'wienfilt_' + str(win_wien) + 'm.pdf'
-        swm.plot_swmat(sw_wiener,times,kw_dict,title=title,filename=filename,cmap='viridis')
+        swm.plot_swmat(sw_wiener,times,kw_dict,title=title,filename=filename,cmap='viridis',figsize=(12,5),labels='months')
         
 
 plt.close('all')
@@ -115,15 +126,15 @@ sw_dict['norm'] = sw_year.sw_norm
 sw_file = year + '_SW_bp' + str(lowfreq) + '_' + str(hfreq) + '_win_' + str(window_duration_sec) + '_av_' + str(average) + '_sm_' + str(smoothF) + '_Hz_thres_' + str(thres) + '.npy'
 np.save(sw_file,sw_dict)
     
-if False:
+if True:
     
-    fig,ax=plt.subplots(1,1,figsize=(15,10))
-    ax.plot(fr_vec,spectral_year[:,Eru_win],label='original sw')
-    ax.plot(fr_vec,sw_0[:,Eru_win],label='smooth sw')              
-    ax.plot(fr_vec,win_info[Eru_win]['inter_1'](fr_vec),label='Upper envelope')
-    ax.plot(fr_vec,win_info[Eru_win]['inter_1'](fr_vec)-sw_0[:,Eru_win],label='Upper envelope - smoothSW')
-    ax.plot(fr_vec,win_info[Eru_win]['inter_2'](fr_vec),label='New upper envelope')
-    ax.plot(fr_vec,sw_fin[:,Eru_win],label='normalized smoothSW')
+    fig,ax=plt.subplots(1,1,figsize=(10,7))
+    ax.plot(fr_vec,sw_year.spectral_year[lf_idx:hf_idx,Eru_win],label='original sw')
+    ax.plot(fr_vec,sw_year.sw_smooth[:,Eru_win],label='smooth sw')              
+    ax.plot(fr_vec, sw_year.envelope[Eru_win]['inter_1'](fr_vec),label='Upper envelope')
+    ax.plot(fr_vec,sw_year.envelope[Eru_win]['inter_1'](fr_vec)-sw_year.sw_smooth[:,Eru_win],label='Upper envelope - smoothSW')
+    ax.plot(fr_vec,sw_year.envelope[Eru_win]['inter_2'](fr_vec),label='New upper envelope')
+    ax.plot(fr_vec,sw_year.sw_norm[:,Eru_win],label='normalized smoothSW')
     ax.legend(loc='lower right')
     plt.ylabel('SW')
     ax.set_title( 'Eruption (day 267)')
@@ -133,54 +144,38 @@ if False:
     filename = 'Figures/wdur' + str(window_duration_sec) + 's_av' + str(average)  + '_sm_' + str(smoothF) + '_thres_' + str(thres) + '_eruption.pdf'
     fig.savefig(filename)
     
-    fig,ax=plt.subplots(1,1,figsize=(15,10))
+    # fig,ax=plt.subplots(1,1,figsize=(15,10))
     
-    ax.plot(fr_vec,spectral_year[:,Noeru_win],label='original sw')
-    ax.plot(fr_vec,sw_0[:,Noeru_win],label='smooth sw')              
-    ax.plot(fr_vec,win_info[Noeru_win]['inter_1'](fr_vec),label='Upper envelope')
-    ax.plot(fr_vec,win_info[Noeru_win]['inter_1'](fr_vec)-sw_0[:,Noeru_win],label='Upper envelope - smoothSW')
-    ax.plot(fr_vec,win_info[Noeru_win]['inter_2'](fr_vec),label='New upper envelope')
-    ax.plot(fr_vec,sw_fin[:,Noeru_win],label='normalized smoothSW')
-    ax.legend(loc='lower right')
-    plt.ylabel('SW')
-    ax.set_xlabel('frequency Hz')
-    ax.set_title('No eruption but signal (day 100)')
-    filename = 'wdur' + str(window_duration_sec) + 's_av' + str(average) + '_sm_' + str(smoothF) + '_thres_' + str(thres) + '_noerup.png'
-    fig.savefig(filename,dpi=400)
-    filename = 'Figures/wdur' + str(window_duration_sec) + 's_av' + str(average)  + '_sm_' + str(smoothF) +'_thres_' + str(thres) + '_noerup.pdf'
-    fig.savefig(filename)
+    # ax.plot(fr_vec,spectral_year[:,Noeru_win],label='original sw')
+    # ax.plot(fr_vec,sw_0[:,Noeru_win],label='smooth sw')              
+    # ax.plot(fr_vec,win_info[Noeru_win]['inter_1'](fr_vec),label='Upper envelope')
+    # ax.plot(fr_vec,win_info[Noeru_win]['inter_1'](fr_vec)-sw_0[:,Noeru_win],label='Upper envelope - smoothSW')
+    # ax.plot(fr_vec,win_info[Noeru_win]['inter_2'](fr_vec),label='New upper envelope')
+    # ax.plot(fr_vec,sw_fin[:,Noeru_win],label='normalized smoothSW')
+    # ax.legend(loc='lower right')
+    # plt.ylabel('SW')
+    # ax.set_xlabel('frequency Hz')
+    # ax.set_title('No eruption but signal (day 100)')
+    # filename = 'wdur' + str(window_duration_sec) + 's_av' + str(average) + '_sm_' + str(smoothF) + '_thres_' + str(thres) + '_noerup.png'
+    # fig.savefig(filename,dpi=400)
+    # filename = 'Figures/wdur' + str(window_duration_sec) + 's_av' + str(average)  + '_sm_' + str(smoothF) +'_thres_' + str(thres) + '_noerup.pdf'
+    # fig.savefig(filename)
     
-    fig,ax=plt.subplots(1,1,figsize=(15,10))
-    ax.plot(fr_vec,spectral_year[:,Nosig_win],label='original sw')
-    ax.plot(fr_vec,sw_0[:,Nosig_win],label='smooth sw')              
-    ax.plot(fr_vec,win_info[Nosig_win]['inter_1'](fr_vec),label='Upper envelope')
-    ax.plot(fr_vec,win_info[Nosig_win]['inter_1'](fr_vec)-sw_0[:,Nosig_win],label='Upper envelope - smoothSW')
-    ax.plot(fr_vec,win_info[Nosig_win]['inter_2'](fr_vec),label='New upper envelope')
-    ax.plot(fr_vec,sw_fin[:,Nosig_win],label='normalized smoothSW')
-    ax.legend(loc='lower right')
-    plt.ylabel('SW')
-    ax.set_title('No emerging signals (day 311.22)')
-    ax.set_xlabel('frequency Hz')
-    filename = 'wdur' + str(window_duration_sec) + 's_av' + str(average) + '_sm_' + str(smoothF) +'_thres_' + str(thres) + 'nolines.png'
-    fig.savefig(filename,dpi=400)
-    filename = 'Figures/wdur' + str(window_duration_sec) + 's_av' + str(average)  + '_sm_' + str(smoothF) + '_thres_' + str(thres) + 'nolines.pdf'
-    fig.savefig(filename)
+    # fig,ax=plt.subplots(1,1,figsize=(15,10))
+    # ax.plot(fr_vec,spectral_year[:,Nosig_win],label='original sw')
+    # ax.plot(fr_vec,sw_0[:,Nosig_win],label='smooth sw')              
+    # ax.plot(fr_vec,win_info[Nosig_win]['inter_1'](fr_vec),label='Upper envelope')
+    # ax.plot(fr_vec,win_info[Nosig_win]['inter_1'](fr_vec)-sw_0[:,Nosig_win],label='Upper envelope - smoothSW')
+    # ax.plot(fr_vec,win_info[Nosig_win]['inter_2'](fr_vec),label='New upper envelope')
+    # ax.plot(fr_vec,sw_fin[:,Nosig_win],label='normalized smoothSW')
+    # ax.legend(loc='lower right')
+    # plt.ylabel('SW')
+    # ax.set_title('No emerging signals (day 311.22)')
+    # ax.set_xlabel('frequency Hz')
+    # filename = 'wdur' + str(window_duration_sec) + 's_av' + str(average) + '_sm_' + str(smoothF) +'_thres_' + str(thres) + 'nolines.png'
+    # fig.savefig(filename,dpi=400)
+    # filename = 'Figures/wdur' + str(window_duration_sec) + 's_av' + str(average)  + '_sm_' + str(smoothF) + '_thres_' + str(thres) + 'nolines.pdf'
+    # fig.savefig(filename)
     
-    
-    lines_dict = {}
-    peaks, _ = signal.find_peaks(sw_fin[:,Eru_win],height=0.8)
-    lines_dict['eruption'] = len(peaks)
-    peaks, _ = signal.find_peaks(sw_fin[:,Noeru_win],height=0.8)
-    lines_dict['day_100'] = len(peaks)
-    peaks, _ = signal.find_peaks(sw_fin[:,Nosig_win],height=0.8)
-    lines_dict['day_311'] = len(peaks)
-    lines_dict['win_dur'] = window_duration_sec
-    lines_dict['average'] = average
-    lines_dict['smoothing'] = smoothF
-    lines_dict['threshold'] = thres
-    
-    line_file = 'lines_win_' + str(window_duration_sec) + '_av_' + str(average) + '_sm_' + str(smoothF) + '_Hz_thres_' + str(thres) + '.npy'
-    np.save(line_file,lines_dict)
-    
-    
+
 
