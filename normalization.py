@@ -4,6 +4,7 @@ import glob
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import ticker
+import matplotlib.dates as mdates
 from scipy import ndimage, signal
 from scipy.interpolate import interp1d
 from scipy.signal import argrelextrema
@@ -270,7 +271,7 @@ def pearson_2d(x, Y):
     # return
     # LAB(end solution)
     
-def plot_swmat(swmatrix,times,plot_dict,title,filename,figsize=(11, 6),labels='days',cmap='RdBu'):
+def plot_swmat(swmatrix,times,plot_dict,title,filename,figsize=(11, 6),labels='days',cmap='RdBu',julday=False):
     fr_vec = plot_dict['fr_vec']
     fig, ax = plt.subplots(1, figsize=figsize)
     img = ax.pcolorfast(times, fr_vec, swmatrix, rasterized=False, cmap=cmap)
@@ -279,10 +280,18 @@ def plot_swmat(swmatrix,times,plot_dict,title,filename,figsize=(11, 6),labels='d
     ax.set_yscale('symlog',linthresh=1e-1,subs=[2,3,4,5,6,7,8,9,10])
     ax.set_yticks(np.arange(11))
     ax.set_ylim(plot_dict['lowfreq'],plot_dict['hfreq'])
+    if julday == False:
+        fmt_month = mdates.MonthLocator()
+        fmt_year = mdates.YearLocator()
+        ax.xaxis.set_minor_locator(fmt_month)
+        ax.xaxis.set_minor_formatter(mdates.DateFormatter('%b'))
+        ax.xaxis.set_major_locator(fmt_year)
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
+
     plt.colorbar(img, ax=ax)
     ax.yaxis.set_major_formatter(ticker.ScalarFormatter())
     ax.set_title(title)
     if filename[-3:]=='png':
-        plt.savefig(filename,dpi=300)
+        plt.savefig(filename,bbox_inches='tight',dpi=300)
     else:
-        plt.savefig(filename)
+        plt.savefig(filename,bbox_inches='tight')
