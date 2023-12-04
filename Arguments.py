@@ -30,7 +30,7 @@ preproc_spectral_secs = window_duration_sec * average * overlap
 SWdir = 'output_wdur' + str(window_duration_sec) + 's' + '_av' + str(average)
 ODIR = os.path.join(datadir,year,SWdir)
 #Defining the signal parameters
-s_rate = 20 #signal rate
+s_rate = 20 #signal sampling rate
 Fn = s_rate/2 #Nyquist
 lowfreq = 1.0 #low freq idx
 hfreq = 3.0
@@ -43,7 +43,7 @@ win_wien = 360
 npts = (window_duration_sec * s_rate *2 ) - 1 #number of points
 T =  window_duration_sec *2
 DelF = 1/T
-DelT = (window_duration_sec/2) * (average/2)
+DelT = (window_duration_sec/2) * (average * overlap)
 freq_tmp = np.fft.fftfreq(npts,d=1/s_rate)
 lf_idx = np.argwhere(freq_tmp[:int(npts/2)]>=lowfreq)[0][0] #lower freq index
 hf_idx = np.argwhere(freq_tmp[:int(npts/2)]<=hfreq)[-1][0] #hfreq freq index
@@ -61,8 +61,10 @@ kw_dict = {'year':'2015', 'day1': day1,'day2': day2, 'Winperday':Winperday,
         ,'threshold':thres}
 
 #Clusters parameters
-CC_threshold = 0.25
-Len_stacking = 1440 * 3 #in minutes
+NumClust = 10 # if we have already the number of clusters
+CC_threshold = 0.3
+Len_stacking = 1440    #in minutes
+
 
 
 
