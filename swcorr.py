@@ -90,9 +90,17 @@ class swcorr(object):
 
         #Conver to array, sort the index, and calculate the spectrla \
         # width template
+        erase_list = []
         for iclus in np.arange(self.NumClusters):
             self.nclust[iclus]['idx_final'] = np.sort(np.array(self.nclust[iclus]['idx_final']))
-            self.nclust[iclus]['SW_final'] = np.mean(self.SW[:,self.nclust[iclus]['idx_final']],axis=1)
+            if self.nclust[iclus]['idx_final'].size:
+                self.nclust[iclus]['SW_final'] = np.mean(self.SW[:,self.nclust[iclus]['idx_final']],axis=1)
+            else:
+                print('Erasing cluster: ' + str(iclus) + 'because similarity' )
+                erase_list.append(iclus)
+        if erase_list:
+            for ic in erase_list:
+                del self.nclust[ic]
         return
 
     
