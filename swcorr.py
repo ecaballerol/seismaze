@@ -74,7 +74,7 @@ class swcorr(object):
                 CC_cluster = np.array(CC_cluster)
                 max_tmp = np.argmax(CC_cluster)
                 max_idx = idx_iter[max_tmp]
-                print(max_idx)
+               # print(max_idx)
                 idx_tmp = np.where(cc_whole[max_idx,:]>self.CC_thres)[0]
                 idx_iter = idx_tmp
             self.nclust[iclus]['maxfinal'] = max_idx
