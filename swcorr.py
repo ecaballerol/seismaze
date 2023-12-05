@@ -4,6 +4,7 @@ import glob
 
 import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.dates as mdates
 from matplotlib import ticker
 from scipy import ndimage, signal
 from scipy.interpolate import interp1d
@@ -44,7 +45,7 @@ class swcorr(object):
     def ClusterCal(self):
         self.nclust = {}
         sw_corrtmp = copy.deepcopy(self.CC)
-        excluding = []
+        central_idx = []
         for iclus in np.arange(self.NumClusters):
             self.nclust[iclus] = {}
             CC_stack = []
@@ -54,11 +55,17 @@ class swcorr(object):
             CC_stack = np.array(CC_stack)
             max_stack = np.argmax(CC_stack)+ self.stack_len
             idx_clus = np.where(sw_corrtmp[max_stack,:]>self.CC_thres)[0]
-            excluding.extend(idx_clus)
             sw_corrtmp[idx_clus,:]=0
             sw_corrtmp[:,idx_clus]=0
+
+            self.nclust[iclus]['CCstack'] = CC_stack
+            self.nclust[iclus]['maxstack'] = max_stack
+            self.nclust[iclus]['idx_clus'] = idx_clus
+            self.nclust[iclus]['sw_tem'] = np.mean(self.SW[:,idx_clus],axis=1)
+
             #Iterative step 2 of Soubestre et al. 2018
-            idx_iter = copy.copy(idx_clus)
+            idx_iter = copy.deepcopy(self.nclust[iclus]['idx_clus'])
+
             for iter in np.arange(4):
                 cc_whole = copy.deepcopy(self.CC)
                 CC_cluster = []
@@ -66,28 +73,44 @@ class swcorr(object):
                     CC_cluster.append(np.sum(cc_whole[idxCC,idx_iter]))
                 CC_cluster = np.array(CC_cluster)
                 max_tmp = np.argmax(CC_cluster)
-                idx_tmp = np.where(cc_whole[idx_iter[max_tmp],:]>self.CC_thres)[0]
-                #print('For cluster: ',iclus, 'index: ',idx_iter[max_tmp])
+                max_idx = idx_iter[max_tmp]
+                print(max_idx)
+                idx_tmp = np.where(cc_whole[max_idx,:]>self.CC_thres)[0]
                 idx_iter = idx_tmp
-            self.nclust[iclus]['CCstack'] = CC_stack
-            self.nclust[iclus]['maxstack'] = max_stack
-            self.nclust[iclus]['idx_clus'] = idx_clus
-            self.nclust[iclus]['sw_tem'] = np.mean(self.SW[:,idx_clus],axis=1)
-            self.nclust[iclus]['CC_cluster'] = CC_cluster
-            self.nclust[iclus]['idx_iter'] = idx_iter
-            self.nclust[iclus]['CC_tem'] = np.mean(self.SW[:,idx_iter],axis=1)
+            self.nclust[iclus]['maxfinal'] = max_idx
+            self.nclust[iclus]['idx_final']=[]
+            central_idx.append(max_idx)
 
+        for iclus in np.arange(self.NumClusters):
+            cc_final = copy.deepcopy(self.CC)
+            for idx in self.nclust[iclus]['idx_clus']:
+                tmp = cc_final[idx,central_idx]
+                cluster_final = np.argmax(tmp)
+                self.nclust[cluster_final]['idx_final'].append(idx)
+
+        #Conver to array, sort the index, and calculate the spectrla \
+        # width template
+        for iclus in np.arange(self.NumClusters):
+            self.nclust[iclus]['idx_final'] = np.sort(np.array(self.nclust[iclus]['idx_final']))
+            self.nclust[iclus]['SW_final'] = np.mean(self.SW[:,self.nclust[iclus]['idx_final']],axis=1)
         return
 
     
 
 
 
-def plot_CC(CC,times,plot_dict,title,filename,labels='days',cmap='RdBu'):
-    fig, ax = plt.subplots(1, figsize=(9, 8))
+def plot_CC(CC,times,plot_dict,title,filename,figsize=(9, 8),labels='days',cmap='RdBu',julday=False):
+    fig, ax = plt.subplots(1, figsize=figsize)
     img = ax.pcolorfast(times, times, CC, rasterized=False, cmap=cmap,vmin=0)
     ax.set_xlabel(labels)
     ax.set_ylabel(labels)
+    if julday == False:
+        fmt_month = mdates.MonthLocator()
+        fmt_year = mdates.YearLocator()
+        ax.xaxis.set_minor_locator(fmt_month)
+        ax.xaxis.set_minor_formatter(mdates.DateFormatter('%b'))
+        ax.xaxis.set_major_locator(fmt_year)
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
     # ax.set_yscale('symlog',linthresh=1e-1,subs=[2,3,4,5,6,7,8,9,10])
     # ax.set_yticks(np.arange(11))
     # ax.set_ylim(plot_dict['lowfreq'],plot_dict['hfreq'])
@@ -97,6 +120,6 @@ def plot_CC(CC,times,plot_dict,title,filename,labels='days',cmap='RdBu'):
     #ax.yaxis.set_major_formatter(ticker.ScalarFormatter())
     ax.set_title(title)
     if filename[-3:]=='png':
-        plt.savefig(filename,dpi=300)
+        plt.savefig(filename,dpi=300,bbox_inches='tight')
     else:
-        plt.savefig(filename)
+        plt.savefig(filename,bbox_inches='tight')
