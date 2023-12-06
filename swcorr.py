@@ -62,25 +62,26 @@ class swcorr(object):
             self.nclust[iclus]['maxstack'] = max_stack
             self.nclust[iclus]['idx_clus'] = idx_clus
             self.nclust[iclus]['sw_tem'] = np.mean(self.SW[:,idx_clus],axis=1)
-
+            # print(max_stack)
             #Iterative step 2 of Soubestre et al. 2018
             idx_iter = copy.deepcopy(self.nclust[iclus]['idx_clus'])
-
+            # Loop for the central point
             for iter in np.arange(4):
                 cc_whole = copy.deepcopy(self.CC)
                 CC_cluster = []
+                #Stacking over the seleceted windows
                 for count, idxCC in enumerate(idx_iter):
                     CC_cluster.append(np.sum(cc_whole[idxCC,idx_iter]))
                 CC_cluster = np.array(CC_cluster)
                 max_tmp = np.argmax(CC_cluster)
                 max_idx = idx_iter[max_tmp]
-               # print(max_idx)
+                #print(max_idx)
                 idx_tmp = np.where(cc_whole[max_idx,:]>self.CC_thres)[0]
-                idx_iter = idx_tmp
+                idx_iter = copy.copy(idx_tmp)
             self.nclust[iclus]['maxfinal'] = max_idx
             self.nclust[iclus]['idx_final']=[]
             central_idx.append(max_idx)
-
+        # print(central_idx)
         for iclus in np.arange(self.NumClusters):
             cc_final = copy.deepcopy(self.CC)
             for idx in self.nclust[iclus]['idx_clus']:
@@ -96,11 +97,14 @@ class swcorr(object):
             if self.nclust[iclus]['idx_final'].size:
                 self.nclust[iclus]['SW_final'] = np.mean(self.SW[:,self.nclust[iclus]['idx_final']],axis=1)
             else:
-                print('Erasing cluster: ' + str(iclus) + 'because similarity' )
-                erase_list.append(iclus)
-        if erase_list:
-            for ic in erase_list:
-                del self.nclust[ic]
+                print('Not elemennts in cluster: ' + str(iclus) + 'because similarity' )
+                print('changing for initial cluster samples')
+                self.nclust[iclus]['SW_final'] = self.nclust[iclus]['sw_tem']
+        #         erase_list.append(iclus)
+        # if erase_list:
+        #     for ic in erase_list:
+        #         del self.nclust[ic]
+        #         self.NumClusters -=1
         return
 
     
