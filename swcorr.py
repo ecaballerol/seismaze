@@ -97,14 +97,15 @@ class swcorr(object):
             if self.nclust[iclus]['idx_final'].size:
                 self.nclust[iclus]['SW_final'] = np.mean(self.SW[:,self.nclust[iclus]['idx_final']],axis=1)
             else:
-                print('Not elemennts in cluster: ' + str(iclus) + 'because similarity' )
-                print('changing for initial cluster samples')
+                print('Not elemennts in cluster: ' + str(iclus) + ' because similarity' )
+                # print('changing for initial cluster samples')
+                print('Deleting')
                 self.nclust[iclus]['SW_final'] = self.nclust[iclus]['sw_tem']
-        #         erase_list.append(iclus)
-        # if erase_list:
-        #     for ic in erase_list:
-        #         del self.nclust[ic]
-        #         self.NumClusters -=1
+                erase_list.append(iclus)
+        if erase_list:
+            for ic in erase_list:
+                del self.nclust[ic]
+                self.NumClusters -=1
         return
 
     
