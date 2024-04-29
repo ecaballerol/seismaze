@@ -271,7 +271,7 @@ def pearson_2d(x, Y):
     # return
     # LAB(end solution)
     
-def plot_swmat(swmatrix,times,plot_dict,title=None,filename,figsize=(11, 6),labels=None,cmap='RdBu',julday=False):
+def plot_swmat(swmatrix,times,plot_dict,filename,title=None,figsize=(11, 6),labels=None,cmap='RdBu',julday=False):
     fr_vec = plot_dict['fr_vec']
     fig, ax = plt.subplots(1, figsize=figsize)
     img = ax.pcolorfast(times, fr_vec, swmatrix, rasterized=False, cmap=cmap)
