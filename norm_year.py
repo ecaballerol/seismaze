@@ -11,7 +11,7 @@ import datetime
 
 import normalization as swm
 from Arguments import *
-plt.rcParams.update({'font.size': 14})
+plt.rcParams.update({'font.size': 12})
 
 sw_year = swm.swnorm(ODIR,kw_dict)
 #READING THE DATA 
@@ -48,23 +48,23 @@ for smoothF in ismooth:
     #Spectral year original
     title = 'Spectral width:' + year
     filename = 'Year_Norm/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) + '_erup.png'
-    swm.plot_swmat(spectral_year_plot,months,kw_dict,title=title,filename=filename,figsize=(12,5),labels='months')
+    swm.plot_swmat(spectral_year_plot,months,kw_dict,filename=filename,figsize=(12,5))
     filename = 'Year_Figures/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) + '_erup.pdf'
-    swm.plot_swmat(spectral_year_plot,months,kw_dict,title=title,filename=filename,figsize=(13,5),labels='months')
+    swm.plot_swmat(spectral_year_plot,months,kw_dict,filename=filename,figsize=(13,5))
     #Spectral year smoothed
     title = 'Smoothed Spectral width:' + year + ' smoothed: ' + str(smoothF) + 'Hz'
     filename = 'Year_Norm/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) + '_smooth_' + str(smoothF) + 'Hz_erup.png'
-    swm.plot_swmat(sw_year.sw_smooth,months,kw_dict,title=title,filename=filename,figsize=(12,5),labels='months')
+    swm.plot_swmat(sw_year.sw_smooth,months,kw_dict,filename=filename,title=title,figsize=(12,5),labels='months')
     filename = 'Year_Figures/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) + '_smooth_' + str(smoothF) + 'Hz_erup.pdf'
-    swm.plot_swmat(sw_year.sw_smooth,months,kw_dict,title=title,filename=filename,figsize=(12,5),labels='months')
+    swm.plot_swmat(sw_year.sw_smooth,months,kw_dict,filename=filename,title=title,figsize=(12,5),labels='months')
     #Spectral year normalized
     title = 'Normalized spectral width, smooth:' + str(smoothF) + 'Hz'
     filename = 'Year_Norm/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average)  \
         + '_sm_' + str(smoothF) + 'Hz_norm' +'_thres_' + str(thres) + '.png'
-    swm.plot_swmat(sw_year.sw_norm,months,kw_dict,title=title,filename=filename,cmap='viridis',figsize=(12,5),labels='months')
+    swm.plot_swmat(sw_year.sw_norm,months,kw_dict,filename=filename,title=title,cmap='viridis',figsize=(12,5),labels='months')
     filename = 'Year_Figures/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average)  \
         + '_sm_' + str(smoothF) + 'Hz_norm' +'_thres_' + str(thres) + '.pdf'
-    swm.plot_swmat(sw_year.sw_norm,months,kw_dict,title=title,filename=filename,cmap='viridis',figsize=(12,5),labels='months')
+    swm.plot_swmat(sw_year.sw_norm,months,kw_dict,filename=filename,title=title,cmap='viridis',figsize=(12,5),labels='months')
     
     plt.close('all')
 
@@ -74,10 +74,10 @@ for smoothF in ismooth:
     filename = 'Year_Norm/' + year +'_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + \
          str(window_duration_sec) + 's_av' + str(average) \
         + '_sm_' + str(smoothF) + 'Hz_norm' +'_thres_' + str(thres) + 'medfilt_' + str(win_medfilt) + 'm.png'
-    swm.plot_swmat(sw_median,months,kw_dict,title=title,filename=filename,cmap='viridis',figsize=(12,5),labels='months')
+    swm.plot_swmat(sw_median,months,kw_dict,filename=filename,title=title,cmap='viridis',figsize=(12,5),labels='months')
     filename = 'Year_Figures/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) + '_sm_' + str(smoothF) + 'Hz_norm' +'_thres_' \
         + str(thres) + 'medfilt_' + str(win_medfilt) + 'm.pdf'
-    swm.plot_swmat(sw_median,months,kw_dict,title=title,filename=filename,cmap='viridis',figsize=(12,5),labels='months')
+    swm.plot_swmat(sw_median,months,kw_dict,filename=filename,title=title,cmap='viridis',figsize=(12,5),labels='months')
 
     
     for win_wien in wien_lens:
@@ -88,10 +88,10 @@ for smoothF in ismooth:
         title='Normalized spectral width with wiener filter: ' + str(win_wien) + 'min'
         filename = 'Year_Norm/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) \
             + '_sm_' + str(smoothF) + 'Hz_norm' +'_thres_' + str(thres) + 'wienfilt_' + str(win_wien) + 'm.png'
-        swm.plot_swmat(sw_wiener,months,kw_dict,title=title,filename=filename,cmap='viridis',figsize=(12,5),labels='months')
+        swm.plot_swmat(sw_wiener,months,kw_dict,filename=filename,title=title,cmap='viridis',figsize=(12,5),labels='months')
         filename = 'Year_Figures/' + year + '_bp'+ str(lowfreq) + '_' + str(hfreq) + 'Hz_win' + str(window_duration_sec) + 's_av' + str(average) \
             + '_sm_' + str(smoothF) + 'Hz_norm' +'_thres_' + str(thres) + 'wienfilt_' + str(win_wien) + 'm.pdf'
-        swm.plot_swmat(sw_wiener,months,kw_dict,title=title,filename=filename,cmap='viridis',figsize=(12,5),labels='months')
+        swm.plot_swmat(sw_wiener,months,kw_dict,filename=filename,title=title,cmap='viridis',figsize=(12,5),labels='months')
         
 
 plt.close('all')
