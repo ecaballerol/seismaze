@@ -287,7 +287,7 @@ def plot_swmat(swmatrix,times,plot_dict,filename,title=None,figsize=(11, 6),labe
         ax.xaxis.set_minor_locator(fmt_month)
         ax.xaxis.set_minor_formatter(mdates.DateFormatter('%b'))
         ax.xaxis.set_major_locator(fmt_year)
-        ax.xaxis.set_major_formatter(mdates.DateFormatter('%b'))
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
 
     plt.colorbar(img, ax=ax)
     ax.yaxis.set_major_formatter(ticker.ScalarFormatter())
