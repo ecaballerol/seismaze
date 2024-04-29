@@ -271,11 +271,12 @@ def pearson_2d(x, Y):
     # return
     # LAB(end solution)
     
-def plot_swmat(swmatrix,times,plot_dict,title,filename,figsize=(11, 6),labels='days',cmap='RdBu',julday=False):
+def plot_swmat(swmatrix,times,plot_dict,title=None,filename,figsize=(11, 6),labels=None,cmap='RdBu',julday=False):
     fr_vec = plot_dict['fr_vec']
     fig, ax = plt.subplots(1, figsize=figsize)
     img = ax.pcolorfast(times, fr_vec, swmatrix, rasterized=False, cmap=cmap)
-    ax.set_xlabel(labels)
+    if labels is not None:
+        ax.set_xlabel(labels)
     ax.set_ylabel('Frequency, Hz')
     ax.set_yscale('symlog',linthresh=1e-1,subs=[2,3,4,5,6,7,8,9,10])
     ax.set_yticks(np.arange(11))
@@ -290,7 +291,8 @@ def plot_swmat(swmatrix,times,plot_dict,title,filename,figsize=(11, 6),labels='d
 
     plt.colorbar(img, ax=ax)
     ax.yaxis.set_major_formatter(ticker.ScalarFormatter())
-    ax.set_title(title)
+    if title is not None:
+        ax.set_title(title)
     if filename[-3:]=='png':
         plt.savefig(filename,bbox_inches='tight',dpi=300)
     else:
