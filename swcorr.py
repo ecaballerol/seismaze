@@ -50,7 +50,7 @@ class swcorr(object):
             self.nclust[iclus] = {}
             CC_stack = []
             for i in np.arange(self.stack_len,sw_corrtmp.shape[1]-self.stack_len):
-                CC_stack.append(np.sum(sw_corrtmp[i,i-self.stack_len:i+self.stack_len]))
+                CC_stack.append(np.sum(sw_corrtmp[i,i-self.stack_len:i+self.stack_len+1]))
             
             CC_stack = np.array(CC_stack)
             max_stack = np.argmax(CC_stack)+ self.stack_len
@@ -103,13 +103,14 @@ class swcorr(object):
                 self.NumClusters -=1
 
         clust_tmp= {}
-        date_tmp = []
+        # date_tmp = []
         for iclus in np.arange(self.NumClusters):
             clust_tmp[iclus] = {}
             clust_tmp[iclus]['idx']= copy.deepcopy(self.nclust[iclus]['idx_final'])
-            date_tmp.append([])
+            # date_tmp.append([])
         for iter in np.arange(4):
             central_tmp = []
+            date_tmp = [[] for _ in np.arange(self.NumClusters)]  # Fix 2: reset inside loop
             for iclus in np.arange(self.NumClusters):
                 CC_cluster = []
                 #Stacking over the seleceted windows
@@ -124,13 +125,93 @@ class swcorr(object):
             for iday in np.arange(self.CC.shape[1]):
                 tmp = cc_whole[iday,central_tmp]
                 cluster_final = np.argmax(tmp)
-                #if cc_whole[iday,central_tmp[cluster_final]] >self.CC_thres:
-                date_tmp[cluster_final].append(iday)            
+                if cc_whole[iday,central_tmp[cluster_final]] >self.CC_thres:
+                    date_tmp[cluster_final].append(iday)  
+
             for iclus in np.arange(self.NumClusters):                
                 self.nclust[iclus]['idx'] = np.array(date_tmp[iclus])
             
         return
 
+
+    def ClusterCalv2(self):
+        self.nclust = {}
+        sw_corrtmp = copy.deepcopy(self.CC)
+        for iclus in np.arange(self.NumClusters):
+            self.nclust[iclus] = {}
+            CC_stack = []
+            for i in np.arange(self.stack_len, sw_corrtmp.shape[1]-self.stack_len):
+                CC_stack.append(np.sum(sw_corrtmp[i, i-self.stack_len : i+self.stack_len+1]))
+                
+            CC_stack = np.array(CC_stack)
+            max_stack = np.argmax(CC_stack) + self.stack_len
+            idx_clus = np.where(sw_corrtmp[max_stack, :] > self.CC_thres)[0]
+            sw_corrtmp[idx_clus, :] = 0
+            sw_corrtmp[:, idx_clus] = 0
+            self.nclust[iclus]['CCstack'] = CC_stack
+            self.nclust[iclus]['maxstack'] = max_stack
+            self.nclust[iclus]['idx_clus'] = idx_clus
+            self.nclust[iclus]['sw_tem'] = np.mean(self.SW[:, idx_clus], axis=1)
+
+        # Prune empty clusters after Step 1
+        cc_whole = copy.deepcopy(self.CC)
+        erase_list = []
+        for iclus in np.arange(self.NumClusters):
+            if not self.nclust[iclus]['idx_clus'].size:
+                print('Not elements in cluster: ' + str(iclus) + ' because similarity')
+                print('Deleting')
+                erase_list.append(iclus)
+        if erase_list:
+            for ic in erase_list:
+                del self.nclust[ic]
+                self.NumClusters -= 1
+
+        # Initialize clust_tmp directly from Step 1 output
+        clust_tmp = {}
+        for iclus in np.arange(self.NumClusters):
+            clust_tmp[iclus] = {}
+            clust_tmp[iclus]['idx'] = copy.deepcopy(self.nclust[iclus]['idx_clus'])
+
+        # Iterative step 2 of Soubestre et al. 2018
+        prev_central_tmp = None
+        for iter in np.arange(4):
+            central_tmp = []
+            date_tmp = [[] for _ in np.arange(self.NumClusters)]
+            for iclus in np.arange(self.NumClusters):
+                CC_cluster = []
+                idx_iter = clust_tmp[iclus]['idx']
+                for count, idxCC in enumerate(idx_iter):
+                    CC_cluster.append(np.sum(cc_whole[idxCC, idx_iter]))
+                CC_cluster = np.array(CC_cluster)
+                max_tmp = np.argmax(CC_cluster)
+                max_idx = idx_iter[max_tmp]
+                central_tmp.append(max_idx)
+
+            # Check convergence before reassigning days
+            if central_tmp == prev_central_tmp:
+                print(f'Converged at iteration {iter}')
+                break
+            prev_central_tmp = central_tmp
+
+            for iday in np.arange(self.CC.shape[1]):
+                tmp = cc_whole[iday, central_tmp]
+                cluster_final = np.argmax(tmp)
+                if cc_whole[iday, central_tmp[cluster_final]] > self.CC_thres:  # threshold check
+                    date_tmp[cluster_final].append(iday)
+
+            for iclus in np.arange(self.NumClusters):
+                clust_tmp[iclus]['idx'] = np.array(date_tmp[iclus])
+
+        # Write final indices back to nclust and compute SW_final from final assignments
+        for iclus in np.arange(self.NumClusters):
+            self.nclust[iclus]['idx'] = clust_tmp[iclus]['idx']
+            if self.nclust[iclus]['idx'].size:
+                self.nclust[iclus]['SW_final'] = np.mean(self.SW[:, self.nclust[iclus]['idx']], axis=1)
+            else:
+                print('Not elements in cluster: ' + str(iclus) + ' after resorting')
+                self.nclust[iclus]['SW_final'] = self.nclust[iclus]['sw_tem']
+
+        return
     
 
 
