@@ -8,7 +8,7 @@ import matplotlib.dates as mdates
 from scipy import ndimage, signal
 from scipy.interpolate import interp1d
 from scipy.signal import argrelextrema
-
+from datetime import datetime, timedelta
 plt.close("all")
 
 
@@ -271,16 +271,26 @@ def pearson_2d(x, Y):
     # return
     # LAB(end solution)
     
-def plot_swmat(swmatrix,times,plot_dict,filename,title=None,figsize=(11, 6),labels=None,cmap='RdBu',julday=False):
+def plot_swmat(swmatrix, times, plot_dict, filename, title=None, figsize=(11, 6),
+               labels=None, cmap='RdBu', julday=False, year=None, day1=1,cmaptitle='Spectral Width'):
     fr_vec = plot_dict['fr_vec']
     fig, ax = plt.subplots(1, figsize=figsize)
-    img = ax.pcolorfast(times, fr_vec, swmatrix, rasterized=False, cmap=cmap)
+
+    if julday == False:
+        year_int = int(year)
+        base_date = datetime(year_int, 1, 1) + timedelta(days=day1 - 1)
+        dates = [base_date + timedelta(days=t) for t in times]
+        times_plot = mdates.date2num(dates)  # pcolorfast needs floats, not datetime objects
+    else:
+        times_plot = times
+
+    img = ax.pcolorfast(times_plot, fr_vec, swmatrix, rasterized=False, cmap=cmap)
     if labels is not None:
         ax.set_xlabel(labels)
     ax.set_ylabel('Frequency, Hz')
-    ax.set_yscale('symlog',linthresh=1e-1,subs=[2,3,4,5,6,7,8,9,10])
+    ax.set_yscale('symlog', linthresh=1e-1, subs=[2,3,4,5,6,7,8,9,10])
     ax.set_yticks(np.arange(11))
-    ax.set_ylim(plot_dict['lowfreq'],plot_dict['hfreq'])
+    ax.set_ylim(plot_dict['lowfreq'], plot_dict['hfreq'])
     if julday == False:
         fmt_month = mdates.MonthLocator()
         fmt_year = mdates.YearLocator()
@@ -288,12 +298,12 @@ def plot_swmat(swmatrix,times,plot_dict,filename,title=None,figsize=(11, 6),labe
         ax.xaxis.set_minor_formatter(mdates.DateFormatter('%b'))
         ax.xaxis.set_major_locator(fmt_year)
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
-
-    plt.colorbar(img, ax=ax)
+    cbar =plt.colorbar(img, ax=ax)
+    cbar.set_label(cmaptitle)
     ax.yaxis.set_major_formatter(ticker.ScalarFormatter())
     if title is not None:
         ax.set_title(title)
-    if filename[-3:]=='png':
-        plt.savefig(filename,bbox_inches='tight',dpi=300)
+    if filename[-3:] == 'png':
+        plt.savefig(filename, bbox_inches='tight', dpi=300)
     else:
-        plt.savefig(filename,bbox_inches='tight')
+        plt.savefig(filename, bbox_inches='tight')
